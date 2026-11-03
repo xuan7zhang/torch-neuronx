@@ -1,0 +1,48 @@
+2026-Nov-02 11:52:05.710496 725559:725559  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)
+[W1102 11:52:16.115952998 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=25450679d4b1aafd5415533c63bd432b658f8662b12efd3d6ec29c5819fbeaf2, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=0080806346172213aa278eb7e645410d} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:52:16Z max() iterable argument is empty
+  (function log)
+/home/ec2-user/torch-neuronx/torch_neuronx/nki_kernel.py:85: UserWarning: NKI_ENABLE_TRACE_CACHE=1: the NKI kernel compile cache is persisted across processes. The caching process may not capture all kernel environment dependencies or non-argument values and can yield stale cache hits; see the torch-neuronx environment variables documentation for details. Set NKI_ENABLE_TRACE_CACHE=0 to disable.
+  _warn_trace_cache_once()
+[W1102 11:53:26.013934093 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=327f371ca710533ae2e71a4a547c52d7af0a1901c3993d59341248d4797daf6e, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=ab44375649b8b74df90a7e78ea72b95c} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:53:26Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620406.074473  729437 main.cc:908] IR signature: 6236a87a6f8b8002b46b980ed56c046a3359d2f0d714462275d0e3bf6b8d43d2 for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: constant multiply parameter subtract 
+2026-11-02 11:53:26.075668: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:53:31.189146282 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=c4a1e54ee6bc57c0ccd991081c755bff042e5d5c691369b9b248095f770fb97c, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=0ec31ae15dd8aa30b924259586653348} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:53:31Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620411.239299  729713 main.cc:908] IR signature: 3bca0bd1a0a76e03452e1badb49268ded37e79d42c7745282b580d362afba9f2 for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: abs add and compare constant cosine divide floor log-plus-one multiply negate parameter select sine subtract tuple 
+2026-11-02 11:53:31.250196: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:53:31.259920787 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=fc8a2483943182960815e3225c148a4552bf478675f412db3e630fa79629642a, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=d071136f557241656bf40b1c69640a4f} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:53:31Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620411.316108  729716 main.cc:908] IR signature: 7b8f5e9893c7b021f08756beae345aeef8dc827286a21553c4ab64f0ab0373dc for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: and broadcast compare constant floor multiply parameter select 
+2026-11-02 11:53:31.321837: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:53:37.819473809 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=de67305edb95bcd2364c6f38d2b9cbca204e41e4d75666111b41ede2ce957ac8, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=b706c9dc5ee128367fbe4011f01988ea} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:53:37Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620417.879590  730078 main.cc:908] IR signature: 183973eb19ee339c85c55b569a5f648455e9e4d51e8098f8e23fbe40cf171750 for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: abs compare constant divide exponential multiply negate parameter select subtract tuple 
+2026-11-02 11:53:37.881554: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:53:40.496949153 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=a568be105f93588e266a7cecde259a9c38dfaec74021e62e8526d955f79f3c9a, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=2d14d765d211b67310674fec5b35a054} error= Command failed (neuronx-cc compilation) with exit code 250  (function log)
+[W1102 11:53:53.256687762 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=5e73c89364b14f4411319f3baa00ed4edda5bf4c96abb38d376063fa41459e30, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=ef1f7bbfc43b75708dbd4211f12db9f6} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:53:53Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620433.278867  730996 main.cc:908] IR signature: 508ba1f367309f3a7485c87423d236fd408b3c65a08caa26ca8d680bddf7ad0b for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: abs add compare constant divide floor is-finite log log-plus-one multiply negate parameter select sine subtract tuple 
+2026-11-02 11:53:53.292457: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:53:53.352961458 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=fbf1fdb6851b455ae12d18044cc34117b905af83c574af1fc566be530a7cf00a, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=53a68fd3de0e3aa17a409b0af59794b6} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:53:53Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620433.411941  730999 main.cc:908] IR signature: 671b8d23b475dfc6d720fdb1aeaa883883db327cbbdf0b4425ed906b853f9687 for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: abs add and compare constant cosine divide floor log-plus-one multiply negate parameter select sine subtract 
+2026-11-02 11:53:53.414890: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)

@@ -1,0 +1,146 @@
+2026-Nov-02 11:31:14.629332 673277:673277  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)
+/home/ec2-user/torch-neuronx/torch_neuronx/nki_kernel.py:85: UserWarning: NKI_ENABLE_TRACE_CACHE=1: the NKI kernel compile cache is persisted across processes. The caching process may not capture all kernel environment dependencies or non-argument values and can yield stale cache hits; see the torch-neuronx environment variables documentation for details. Set NKI_ENABLE_TRACE_CACHE=0 to disable.
+  _warn_trace_cache_once()
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0] Graph break from `Tensor.item()`, consider setting:
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0]     torch._dynamo.config.capture_scalar_outputs = True
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0] or:
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0]     env TORCHDYNAMO_CAPTURE_SCALAR_OUTPUTS=1
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0] to include these operations in the captured graph.
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0] 
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0] Graph break: from user code at:
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0]   File "/home/ec2-user/torch-neuronx/torch_neuronx/python_ops/equal.py", line 90, in torch_dynamo_resume_in_equal_neuron_at_79
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0]     return bool((self == other).all().item())
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0]                 ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0] 
+W1102 11:31:33.953000 673277 torch/_dynamo/variables/tensor.py:1841] [2/0] 
+[W1102 11:31:40.591455393 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=29197485ec5ae097dde9cf8f4ab8664eb56caafeb7fa98156cbceed1668f7ab4, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=3a4a6306f2a55eeed2071334faaa436f} error= Command failed (neuronx-cc compilation) with exit code 250  (function log)
+[W1102 11:31:44.428997140 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=4804fca1d906c46b893f9d8cd323d7468f5ea9414f8fdca63555c6b9d670b6d8, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=1e8c70e5542cfa039aaf92d6d3d23bb3} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:31:44Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619104.488426  674426 main.cc:908] IR signature: 7a47a466250e408a2ec12642970cfea7f06382936d322463c1bdeed355c31bdf for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: add constant exponential parameter subtract tuple 
+2026-11-02 11:31:44.489922: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:31:44.429292859 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=ded34402e96443d5687466b6e2cc1007af28440b763328d3d827fb693ad1ec2f, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=be6045d4f2bf490797cfa5169014424c} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:31:44Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619104.491289  674427 main.cc:908] IR signature: 6e4bb961a8c373cb29242ea2319be9d1ee754d48d590e6f6137fa57dc18923e7 for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: constant exponential multiply parameter subtract 
+2026-11-02 11:31:44.492640: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: Using torch.cross without specifying the dim arg is deprecated.
+Please either pass the dim explicitly or simply use torch.linalg.cross.
+The default value of dim will change to agree with that of linalg.cross in a future release. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/native/Cross.cpp:63.)
+  return self.op(*args, **kwargs)
+[W1102 11:32:01.157642917 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=f2c8f8f939ff680a8dc7b719099225212ab29386b2688b748700d6ecf92539f7, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=201b84079be7a4f8c90c5f671c6e4d75} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:32:01Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619121.220628  675212 main.cc:908] IR signature: 77832a6edd634c3bfeed3ba0369b516a0cab5f405d7bfa2274c949b58ca43e25 for module.mlir
+2026-11-02 11:32:01.221122: E hilo/hlo_passes/NeuronHloVerifier.cc:1691] [ERROR] [NCC_EVRF064] HLO verification failed since the input HLO graph contains an illegal instruction that violates XLA shape constraints. Check the neuronx-cc logs for the specific issue with the HLO, and inspect the reported instruction and ensure all operand shapes are valid.
+
+  (function log)
+[W1102 11:32:02.822346749 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=66c4e181e5d6a7eb9023382db0f8c403914c1a13baa593133e0fe063893a9a2d, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=0286187daa6bac62b905f38989791dcb} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:32:02Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619122.884637  675291 main.cc:908] IR signature: 2487f4bd7165067dd18ae8ab2185e745538611cec3b7f6f27c8f9e4b03781497 for module.mlir
+2026-11-02 11:32:02.885116: E hilo/hlo_passes/NeuronHloVerifier.cc:1691] [ERROR] [NCC_EVRF064] HLO verification failed since the input HLO graph contains an illegal instruction that violates XLA shape constraints. Check the neuronx-cc logs for the specific issue with the HLO, and inspect the reported instruction and ensure all operand shapes are valid.
+
+  (function log)
+[W1102 11:32:35.890766435 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=1db1de1c3b989b169911bc42d26c872d1384386f7119f4f7a240210dcb6e2d43, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=992519c6e6e8048bfc4f6ade3a1b9c21} error= Command failed (neuronx-cc compilation) with exit code 250  (function log)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/functional.py:680: UserWarning: A window was not provided. A rectangular window will be applied,which is known to cause spectral leakage. Other windows such as torch.hann_window or torch.hamming_window are recommended to reduce spectral leakage.To suppress this warning and use a rectangular window, explicitly set `window=torch.ones(n_fft, device=<device>)`. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/native/SpectralOps.cpp:854.)
+  return _VF.stft(  # type: ignore[attr-defined]
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/functional.py:680: UserWarning: stft with return_complex=False is deprecated. In a future pytorch release, stft will return complex tensors for all inputs, and return_complex=False will raise an error.
+Note: you can still call torch.view_as_real on the complex output to recover the old return format. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/native/SpectralOps.cpp:893.)
+  return _VF.stft(  # type: ignore[attr-defined]
+ERROR:torch_neuronx.neuron_dynamo_backend.fx.passes.complex_decomposition:Complex decomposition failed for the torch.compile path.
+Traceback (most recent call last):
+  File "/home/ec2-user/torch-neuronx/torch_neuronx/neuron_dynamo_backend/fx/passes/complex_decomposition.py", line 79, in _decompose_complex
+    decomposed = decompose_complex_in_graph(
+        gm,
+        flat_args,
+        decompositions=get_decomposition_table(),
+    )
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/complex_decomposition.py", line 147, in decompose_complex_in_graph
+    return make_fx(wrapper, decomposition_table=decompositions)(*flat_args)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/experimental/proxy_tensor.py", line 3422, in wrapped
+    return make_fx_tracer.trace(f, *args)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/experimental/proxy_tensor.py", line 3298, in trace
+    return self._trace_inner(f, *args)
+           ~~~~~~~~~~~~~~~~~^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/experimental/proxy_tensor.py", line 3248, in _trace_inner
+    t = dispatch_trace(
+        wrap_key(func, args, self.fx_tracer, self.pre_dispatch),
+        tracer=self.fx_tracer,
+        concrete_args=tuple(phs),
+    )
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_compile.py", line 54, in inner
+    return disable_fn(*args, **kwargs)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1548, in _fn
+    return fn(*args, **kwargs)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/experimental/proxy_tensor.py", line 1863, in dispatch_trace
+    graph = tracer.trace(root, concrete_args)  # type: ignore[arg-type]
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1548, in _fn
+    return fn(*args, **kwargs)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/_symbolic_trace.py", line 932, in trace
+    (self.create_arg(fn(*args)),),
+                     ~~^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/experimental/proxy_tensor.py", line 1952, in wrapped
+    out = f(*tensors)  # type:ignore[call-arg]
+  File "<string>", line 1, in <lambda>
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_functorch/_aot_autograd/complex_decomposition.py", line 143, in wrapper
+    result = fx.Interpreter(gm).run(*wrapped)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py", line 197, in run
+    self.env[node] = self.run_node(node)
+                     ~~~~~~~~~~~~~^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py", line 294, in run_node
+    return getattr(self, n.op)(n.target, args, kwargs)
+           ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py", line 377, in call_function
+    return target(*args, **kwargs)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_ops.py", line 916, in __call__
+    return self._op(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/experimental/proxy_tensor.py", line 2014, in __torch_function__
+    return func(*args, **kwargs)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_ops.py", line 916, in __call__
+    return self._op(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_compile.py", line 54, in inner
+    return disable_fn(*args, **kwargs)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1548, in _fn
+    return fn(*args, **kwargs)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_subclasses/complex_tensor/_ops/common.py", line 326, in __torch_dispatch__
+    return tree_map(_as_complex_tensor, func(*args, **kwargs))
+                                        ~~~~^^^^^^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_ops.py", line 916, in __call__
+    return self._op(*args, **kwargs)
+           ~~~~~~~~^^^^^^^^^^^^^^^^^
+TypeError: Multiple dispatch failed for 'torch._ops.aten._fft_c2c.default'; all __torch_dispatch__ handlers returned NotImplemented:
+
+  - mode object <torch.fx.experimental.proxy_tensor.ProxyTorchDispatchMode object at 0x7f2dc8af0750>
+  - tensor subclass <class 'torch._subclasses.complex_tensor.ComplexTensor'>
+
+For more information, try re-running with TORCH_LOGS=not_implemented
+
+While executing %_fft_c2c : [num_users=1] = call_function[target=torch.ops.aten._fft_c2c.default](args = (%where, [2], 0, False), kwargs = {})
+Original traceback:
+  File "/home/ec2-user/torch-neuronx/agent_space/overnight/vjp_sweep.py", line 44, in <lambda>
+    out = torch.compile(lambda i, a, k: op(i, *a, **k), backend="neuron", dynamic=False)(inp, args, kwargs)
+                                        ~~^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py", line 1263, in __call__
+    return self.op(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+
+Use tlparse to see full graph. (https://github.com/pytorch/tlparse?tab=readme-ov-file#tlparse-parse-structured-pt2-logs)
+[W1102 11:33:41.147921879 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=bff9291f6c618651b84d631b30a88affb4602b43ce6725f69a3ec0afda4227bd, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=bd6c19cdc036d15e8766cb587499a937} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:33:41Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619221.208114  679952 main.cc:908] IR signature: 639f44ec433b8069241c84172400ec974f0200baad87eeeabcd72a1e5957457e for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: abs and compare constant convert divide is-finite log parameter power select tuple 
+2026-11-02 11:33:41.209846: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:33:41.191867307 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=da047244d840cde25c5f0123916c380d240b4c07e697986f35dc5e0e50a4ea28, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=98015c549f1ccc6a9f223464b319bf42} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:33:41Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619221.252266  679953 main.cc:908] IR signature: 83d1b8e60c3504fca71f826ca835b763c24cbc5d8cabe3972d14daf4bfc14c27 for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: constant convert multiply negate parameter power 
+2026-11-02 11:33:41.253629: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)

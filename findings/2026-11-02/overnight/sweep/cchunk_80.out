@@ -1,0 +1,43 @@
+2026-Nov-02 11:33:46.986318 680063:680063  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)
+/home/ec2-user/torch-neuronx/torch_neuronx/nki_kernel.py:85: UserWarning: NKI_ENABLE_TRACE_CACHE=1: the NKI kernel compile cache is persisted across processes. The caching process may not capture all kernel environment dependencies or non-argument values and can yield stale cache hits; see the torch-neuronx environment variables documentation for details. Set NKI_ENABLE_TRACE_CACHE=0 to disable.
+  _warn_trace_cache_once()
+[W1102 11:34:29.976990774 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=68853e86b947d09698be5373239d9a9d95741acb7b6e7cec9c383fedf6a60c86, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=00ecb92f399c9d3511eacf48e8f6919b} error= Command failed (neuronx-cc compilation) with exit code 245  (function log)
+[W1102 11:34:35.329410954 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=dcb68559324d0ee937b0a0d3222ede1ff7a22c745a845e2b6b400c4dcd75b3ae, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=f7900d765398dd4991aae32e26d494f6} error= Command failed (neuronx-cc compilation) with exit code 245  (function log)
+[W1102 11:34:41.708142296 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=e47f24bd3f4aff2b16a66c8f62a5216a27ee2a46522d2c9d7b41913ab93aebff, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=fd9420911f455efcdeb390c972886400} error= Command failed (neuronx-cc compilation) with exit code 245  (function log)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: linear_cross_entropy: ``options`` ignored; chunked path needs reduction in {'mean','sum','none'}, label_smoothing == 0, target.dtype == int64 (or a probability target with reduction in {'mean','sum'}, dtype matching input, and requires_grad == False), out_features == (). Got reduction='mean', label_smoothing=0.0, target.dtype=torch.int64, out_features=(3,), tracing=False, target.requires_grad=False, linear_bias.shape=None.
+  return self.op(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: linear_cross_entropy: ``options`` ignored; chunked path needs reduction in {'mean','sum','none'}, label_smoothing == 0, target.dtype == int64 (or a probability target with reduction in {'mean','sum'}, dtype matching input, and requires_grad == False), out_features == (). Got reduction='none', label_smoothing=0.0, target.dtype=torch.int64, out_features=(3,), tracing=False, target.requires_grad=False, linear_bias.shape=None.
+  return self.op(*args, **kwargs)
+[W1102 11:36:39.830251503 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=4b1f5f0253461758d500ae2785a49ecd3099bb25b858a358672813b657ee02de, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=f7a23eb5e5e509746c32531afeb1b771} error= Command failed (neuronx-cc compilation) with exit code 70: (Load: I-101), tensorizer(output tensor: float32<1 x 2> $101, id: 101) [INTERNAL_ERROR] [NCC_IBIR243] Access pattern out of bounds. Pattern: [[2,1],[2,1],[1,2]] - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables.
+2026-11-02T11:36:39Z Non-signal exit. Backend exited with code 1 and stderr: (Load: I-101), tensorizer(output tensor: float32<1 x 2> $101, id: 101) [INTERNAL_ERROR] [NCC_IBIR243] Access pattern out of bounds. Pattern: [[2,1],[2,1],[1,2]] - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables.
+
+  (function log)
+Exception ignored in atexit callback <function dump_compile_times at 0x7f29bbe10a90>:
+Traceback (most recent call last):
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py", line 925, in dump_compile_times
+    log.info(compile_times(repr="str", aggregate=True))
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py", line 907, in compile_times
+    (k, fmt_fn(compilation_time_metrics[k], item_fn=lambda x: f"{x:.4f}"))
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py", line 902, in fmt_fn
+    return item_fn(sum(values))
+  File "/home/ec2-user/torch-neuronx/torch_neuronx/neuron_dynamo_backend/metrics.py", line 72, in __iter__
+    self._ensure_resolved()
+  File "/home/ec2-user/torch-neuronx/torch_neuronx/neuron_dynamo_backend/metrics.py", line 68, in _ensure_resolved
+    self.extend(self._resolver())
+  File "/home/ec2-user/torch-neuronx/torch_neuronx/neuron_dynamo_backend/metrics.py", line 290, in _resolve_compile_timing
+    torch_neuronx.synchronize()
+  File "/home/ec2-user/torch-neuronx/torch_neuronx/__init__.py", line 711, in synchronize
+    _C._neuron_synchronize(device_index)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1548, in _fn
+    return fn(*args, **kwargs)
+RuntimeError: Compilation error occurred on Neuron for operation=model_default;
+error message="COMPILATION FAILED: Compilation failed for cache key '4b1f5f0253461758d500ae2785a49ecd3099bb25b858a358672813b657ee02de': Command failed (neuronx-cc compilation) with exit code 70: (Load: I-101), tensorizer(output tensor: float32<1 x 2> $101, id: 101) [INTERNAL_ERROR] [NCC_IBIR243] Access pattern out of bounds. Pattern: [[2,1],[2,1],[1,2]] - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables.
+2026-11-02T11:36:39Z Non-signal exit. Backend exited with code 1 and stderr: (Load: I-101), tensorizer(output tensor: float32<1 x 2> $101, id: 101) [INTERNAL_ERROR] [NCC_IBIR243] Access pattern out of bounds. Pattern: [[2,1],[2,1],[1,2]] - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables."
+neff cache key=4b1f5f0253461758d500ae2785a49ecd3099bb25b858a358672813b657ee02de
+Note: Neuron errors are reported asynchronously. The Python traceback shows where the
+error was detected (synchronization point), not necessarily where the failing operation
+was dispatched. For synchronous error reporting, set NEURON_LAUNCH_BLOCKING=1.
+Warning: stream drain failed (module_cleanup:pre): Compilation failed for CompilationCacheKey '{key=4b1f5f0253461758d500ae2785a49ecd3099bb25b858a358672813b657ee02de, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=f7a23eb5e5e509746c32531afeb1b771}': Command failed (neuronx-cc compilation) with exit code 70: (Load: I-101), tensorizer(output tensor: float32<1 x 2> $101, id: 101) [INTERNAL_ERROR] [NCC_IBIR243] Access pattern out of bounds. Pattern: [[2,1],[2,1],[1,2]] - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables.
+2026-11-02T11:36:39Z Non-signal exit. Backend exited with code 1 and stderr: (Load: I-101), tensorizer(output tensor: float32<1 x 2> $101, id: 101) [INTERNAL_ERROR] [NCC_IBIR243] Access pattern out of bounds. Pattern: [[2,1],[2,1],[1,2]] - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables.
+
+

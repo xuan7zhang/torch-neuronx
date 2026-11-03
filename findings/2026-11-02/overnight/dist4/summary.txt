@@ -1,0 +1,78 @@
+=== allreduce_ops_dtypes (exit 0)
+R0 allreduce_ops_dtypes: 31/55 ok; not ok: {'float32/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'bfloat16/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'float16/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'int32/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'int32/BAND': 'ERR TorchMlirCompilerError:  Failed Torch-MLIR Neuron partial lowering from TorchFX IR -> StableHL', 'int32/BOR': 'ERR TorchMlirCompilerError:  Failed Torch-MLIR Neuron partial lowering from TorchFX
+R1 allreduce_ops_dtypes: 31/55 ok; not ok: {'float32/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'bfloat16/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'float16/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'int32/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'int32/BAND': 'ERR TorchMlirCompilerError:  Failed Torch-MLIR Neuron partial lowering from TorchFX IR -> StableHL', 'int32/BOR': 'ERR TorchMlirCompilerError:  Failed Torch-MLIR Neuron partial lowering from TorchFX
+R2 allreduce_ops_dtypes: 31/55 ok; not ok: {'float32/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'bfloat16/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'float16/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'int32/PRODUCT': 'ERR RuntimeError: Compilation error occurred on Neuron for operation=allreduce; error me', 'int32/BAND': 'ERR TorchMlirCompilerError:  Failed Torch-MLIR Neuron partial lowering from TorchFX IR -> StableHL', 'int32/BOR': 'ERR TorchMlirCompilerError:  Failed Torch-MLIR Neuron partial lowering from TorchFX
+=== reduce_scatter_ops (exit 0)
+R1 reduce_scatter_ops: 8/9 ok; not ok: {'premul_sum': "ERR ImportError: cannot import name '_make_nccl_premul_sum' from 'torch.distributed.dis"}
+R2 reduce_scatter_ops: 8/9 ok; not ok: {'premul_sum': "ERR ImportError: cannot import name '_make_nccl_premul_sum' from 'torch.distributed.dis"}R0 reduce_scatter_ops: 8/9 ok; not ok: {'premul_sum': "ERR ImportError: cannot import name '_make_nccl_premul_sum' from 'torch.distributed.dis"}
+R3 reduce_scatter_ops: 8/9 ok; not ok: {'premul_sum': "ERR ImportError: cannot import name '_make_nccl_premul_sum' from 'torch.distributed.dis"}
+=== noncontig_inputs (exit 0)
+R0 noncontig_inputs: {'allreduce_transposed': True, 'allreduce_strided_slice': True, 'allgather_into_noncontig_in': True, 'broadcast_src2_transposed': True, 'allgather_list_into_unbind_views': True, 'reduce_scatter_into_row_slice': True}R3 noncontig_inputs: {'allreduce_transposed': True, 'allreduce_strided_slice': True, 'allgather_into_noncontig_in': True, 'broadcast_src2_transposed': True, 'allgather_list_into_unbind_views': True, 'reduce_scatter_into_row_slice': True}
+R1 noncontig_inputs: {'allreduce_transposed': True, 'allreduce_strided_slice': True, 'allgather_into_noncontig_in': True, 'broadcast_src2_transposed': True, 'allgather_list_into_unbind_views': True, 'reduce_scatter_into_row_slice': True}
+R2 noncontig_inputs: {'allreduce_transposed': True, 'allreduce_strided_slice': True, 'allgather_into_noncontig_in': True, 'broadcast_src2_transposed': True, 'allgather_list_into_unbind_views': True, 'reduce_scatter_into_row_slice': True}
+=== async_works (exit 0)
+R1 async_works: {'8_async_allreduce_wait_reverse': True, 'wait_then_compute': True, 'get_future': True, 'is_completed_after_wait': True, 'ag_rs_interleaved': True}
+R2 async_works: {'8_async_allreduce_wait_reverse': True, 'wait_then_compute': True, 'get_future': True, 'is_completed_after_wait': True, 'ag_rs_interleaved': True}R0 async_works: {'8_async_allreduce_wait_reverse': True, 'wait_then_compute': True, 'get_future': True, 'is_completed_after_wait': True, 'ag_rs_interleaved': True}
+R3 async_works: {'8_async_allreduce_wait_reverse': True, 'wait_then_compute': True, 'get_future': True, 'is_completed_after_wait': True, 'ag_rs_interleaved': True}
+=== subgroup_partial_membership (exit 0)
+R0 subgroup_partial_membership: {'disjoint_groups_concurrent': True, 'subset_group_others_idle': True, 'subgroup_broadcast_global_src': True, 'world_after_subgroups': True}
+R1 subgroup_partial_membership: {'disjoint_groups_concurrent': True, 'subset_group_others_idle': True, 'subgroup_broadcast_global_src': True, 'world_after_subgroups': True}
+R3 subgroup_partial_membership: {'disjoint_groups_concurrent': True, 'subset_group_others_idle': True, 'subgroup_broadcast_global_src': True, 'world_after_subgroups': True}R2 subgroup_partial_membership: {'disjoint_groups_concurrent': True, 'subset_group_others_idle': True, 'subgroup_broadcast_global_src': True, 'world_after_subgroups': True}
+=== reinit_process_group (exit 124)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 380, in wrapper
+=== ddp_variants (exit 0)
+R0 ddp_variants: {'basic': {'params': 1.393713411346198e-08}, 'gradient_as_bucket_view': {'params': 1.393713411346198e-08}, 'small_buckets': {'params': 1.393713411346198e-08}, 'static_graph': {'params': 1.393713411346198e-08}, 'compiled': {'params': 1.393713411346198e-08}, 'adamw': {'params': 8.757732672393104e-08}, 'find_unused_alternating': {'params': 3.5822655064521314e-08}}
+R1 ddp_variants: {'basic': {'params': 1.393713411346198e-08}, 'gradient_as_bucket_view': {'params': 1.393713411346198e-08}, 'small_buckets': {'params': 1.393713411346198e-08}, 'static_graph': {'params': 1.393713411346198e-08}, 'compiled': {'params': 1.393713411346198e-08}, 'adamw': {'params': 8.757732672393104e-08}, 'find_unused_alternating': {'params': 3.5822655064521314e-08}}R3 ddp_variants: {'basic': {'params': 1.393713411346198e-08}, 'gradient_as_bucket_view': {'params': 1.393713411346198e-08}, 'small_buckets': {'params': 1.393713411346198e-08}, 'static_graph': {'params': 1.393713411346198e-08}, 'compiled': {'params': 1.393713411346198e-08}, 'adamw': {'params': 8.757732672393104e-08}, 'f
+R2 ddp_variants: {'basic': {'params': 1.393713411346198e-08}, 'gradient_as_bucket_view': {'params': 1.393713411346198e-08}, 'small_buckets': {'params': 1.393713411346198e-08}, 'static_graph': {'params': 1.393713411346198e-08}, 'compiled': {'params': 1.393713411346198e-08}, 'adamw': {'params': 8.757732672393104e-08}, 'find_unused_alternating': {'params': 3.5822655064521314e-08}}
+=== ddp_no_sync_accum (exit 0)
+R0 ddp_no_sync_accum: {'params': 1.3204355830964687e-08}
+R1 ddp_no_sync_accum: {'params': 1.3204355830964687e-08}
+R2 ddp_no_sync_accum: {'params': 1.3204355830964687e-08}
+R3 ddp_no_sync_accum: {'params': 1.3204355830964687e-08}
+=== ddp_batchnorm_buffers (exit 0)
+R1 ddp_batchnorm_buffers: {'running_mean_same_on_all_ranks': True, 'num_batches_tracked': 2, 'syncbn_out': 8.30495778814111e-08, 'syncbn_running_mean': 1.0, 'syncbn_weight_grad': 4.167579277236655e-07}R0 ddp_batchnorm_buffers: {'running_mean_same_on_all_ranks': True, 'num_batches_tracked': 2, 'syncbn_out': 1.258452186903014e-07, 'syncbn_running_mean': 1.0, 'syncbn_weight_grad': 4.167579277236655e-07}
+R2 ddp_batchnorm_buffers: {'running_mean_same_on_all_ranks': True, 'num_batches_tracked': 2, 'syncbn_out': 9.328947925268949e-08, 'syncbn_running_mean': 1.0, 'syncbn_weight_grad': 4.167579277236655e-07}
+R3 ddp_batchnorm_buffers: {'running_mean_same_on_all_ranks': True, 'num_batches_tracked': 2, 'syncbn_out': 9.832034209011908e-08, 'syncbn_running_mean': 1.0, 'syncbn_weight_grad': 4.167579277236655e-07}
+=== fsdp2_frozen_mixed (exit 0)
+R0 fsdp2_frozen_mixed: {'params': 1.4351947186241887e-07}
+R1 fsdp2_frozen_mixed: {'params': 1.4351947186241887e-07}
+R2 fsdp2_frozen_mixed: {'params': 1.4351947186241887e-07}
+R3 fsdp2_frozen_mixed: {'params': 1.4351947186241887e-07}
+=== fsdp2_tied (exit 0)
+R0 fsdp2_tied: {'params': 1.0994623522719849e-07}
+R1 fsdp2_tied: {'params': 1.0994623522719849e-07}
+R2 fsdp2_tied: {'params': 1.0994623522719849e-07}
+R3 fsdp2_tied: {'params': 1.0994623522719849e-07}
+=== fsdp2_no_grad_sync_accum (exit 0)
+R0 fsdp2_no_grad_sync_accum: {'params': 1.3204453530590854e-08}
+R3 fsdp2_no_grad_sync_accum: {'params': 1.3204453530590854e-08}R1 fsdp2_no_grad_sync_accum: {'params': 1.3204453530590854e-08}R2 fsdp2_no_grad_sync_accum: {'params': 1.3204453530590854e-08}
+=== fsdp2_explicit_unshard_and_eval (exit 0)
+R0 fsdp2_explicit_unshard_and_eval: {'no_grad_eval': 1.2923916870022367e-07, 'after_unshard': 1.2923916870022367e-07, 'grad_after_reshard': 1.8611265772960905e-07}
+R1 fsdp2_explicit_unshard_and_eval: {'no_grad_eval': 1.2923916870022367e-07, 'after_unshard': 1.2923916870022367e-07, 'grad_after_reshard': 1.8611265772960905e-07}
+R2 fsdp2_explicit_unshard_and_eval: {'no_grad_eval': 1.2923916870022367e-07, 'after_unshard': 1.2923916870022367e-07, 'grad_after_reshard': 1.8611265772960905e-07}
+R3 fsdp2_explicit_unshard_and_eval: {'no_grad_eval': 1.2923916870022367e-07, 'after_unshard': 1.2923916870022367e-07, 'grad_after_reshard': 1.8611265772960905e-07}
+=== fsdp2_optim_state_dict (exit 0)
+R0 fsdp2_optim_state_dict: ERROR RuntimeError: NRT Execution error occurred on Neuron for operation=reduce_scatter error message="NRT EXECUTION FAILED: NRT model scheduling failed, Invalid NEFF, instruction, or input" Note: Neuron errors are reported asynchronously. The Python traceback shows where the error was detected (synchronization point),
+R1 fsdp2_optim_state_dict: ERROR RuntimeError: The option indicates that model state_dict is required to save, or load but optim state_dict is empty. {}
+R2 fsdp2_optim_state_dict: ERROR RuntimeError: The option indicates that model state_dict is required to save, or load but optim state_dict is empty. {}
+R3 fsdp2_optim_state_dict: ERROR RuntimeError: The option indicates that model state_dict is required to save, or load but optim state_dict is empty. {}
+=== context_parallel_sdpa (exit 0)
+R0 context_parallel_sdpa: {'err': 'RuntimeError: cannot resize variables that require grad'}
+R1 context_parallel_sdpa: {'err': 'RuntimeError: cannot resize variables that require grad'}
+R2 context_parallel_sdpa: {'err': 'RuntimeError: cannot resize variables that require grad'}
+R3 context_parallel_sdpa: {'err': 'RuntimeError: cannot resize variables that require grad'}
+=== rank_raises_then_continue (exit 0)
+R0 rank_raises_then_continue: {'after_local_exception': True}
+R1 rank_raises_then_continue: {'after_local_exception': True}
+R2 rank_raises_then_continue: {'after_local_exception': True}
+R3 rank_raises_then_continue: {'after_local_exception': True}
+=== mismatched_shapes_allreduce (exit 0)
+R0 mismatched_shapes_allreduce: {'err': 'RuntimeError: NRT Execution error occurred on Neuron for operation=allreduce error message="NRT EXECUTION FAILED: NRT model scheduling failed, Invalid NEFF, instruc'}
+R1 mismatched_shapes_allreduce: {'err': 'RuntimeError: NRT Execution error occurred on Neuron for operation=allreduce error message="NRT EXECUTION FAILED: NRT model scheduling failed, Invalid NEFF, instruc'}
+R2 mismatched_shapes_allreduce: {'err': 'RuntimeError: NRT Execution error occurred on Neuron for operation=allreduce error message="NRT EXECUTION FAILED: NRT model scheduling failed, Invalid NEFF, instruc'}
+R3 mismatched_shapes_allreduce: {'err': 'RuntimeError: NRT Execution error occurred on Neuron for operation=allreduce error message="NRT EXECUTION FAILED: NRT model scheduling failed, Invalid NEFF, instruc'}
+=== mismatched_dtype_allreduce (exit 0)
+R0 mismatched_dtype_allreduce: {'err': 'RuntimeError: NRT Execution error occurred on Neuron for operation=allreduce error message="NRT EXECUTION FAILED: NRT model scheduling failed, Invalid NEFF, instruc'}
+R1 mismatched_dtype_allreduce: {'err': 'RuntimeError: NRT Execution error occurred on Neuron for operation=allreduce error message="NRT EXECUTION FAILED: NRT model scheduling failed, Invalid NEFF, instruc'}
+R2 mismatched_dtype_allreduce: {'err': 'RuntimeError: NRT Execution error occurred on Neuron for operation=allreduce error message="NRT EXECUTION FAILED: NRT model scheduling failed, Invalid NEFF, instruc'}
+R3 mismatched_dtype_allreduce: {'err': 'RuntimeError: NRT Execution error occurred on Neuron for operation=allreduce error message="NRT EXECUTION FAILED: NRT model scheduling failed, Invalid NEFF, instruc'}

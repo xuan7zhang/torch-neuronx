@@ -1,0 +1,85 @@
+2026-Nov-02 11:36:44.270461 687400:687400  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)
+/home/ec2-user/torch-neuronx/torch_neuronx/nki_kernel.py:85: UserWarning: NKI_ENABLE_TRACE_CACHE=1: the NKI kernel compile cache is persisted across processes. The caching process may not capture all kernel environment dependencies or non-argument values and can yield stale cache hits; see the torch-neuronx environment variables documentation for details. Set NKI_ENABLE_TRACE_CACHE=0 to disable.
+  _warn_trace_cache_once()
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/autograd/graph.py:1072: UserWarning: Error detected in AvgPool3DBackward0. Traceback of forward call that caused the error:
+  File "/home/ec2-user/torch-neuronx/agent_space/overnight/vjp_sweep.py", line 44, in <lambda>
+    out = torch.compile(lambda i, a, k: op(i, *a, **k), backend="neuron", dynamic=False)(inp, args, kwargs)
+                                        ~~^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py", line 1263, in __call__
+    return self.op(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+ (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/python_anomaly_mode.cpp:130.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/autograd/graph.py:1072: UserWarning: Error detected in ConvolutionBackward0. Traceback of forward call that caused the error:
+  File "/home/ec2-user/torch-neuronx/agent_space/overnight/vjp_sweep.py", line 44, in <lambda>
+    out = torch.compile(lambda i, a, k: op(i, *a, **k), backend="neuron", dynamic=False)(inp, args, kwargs)
+                                        ~~^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py", line 1263, in __call__
+    return self.op(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+ (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/python_anomaly_mode.cpp:130.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/autograd/graph.py:1072: UserWarning: Error detected in ConvolutionBackward0. Traceback of forward call that caused the error:
+  File "/home/ec2-user/torch-neuronx/agent_space/overnight/vjp_sweep.py", line 44, in <lambda>
+    out = torch.compile(lambda i, a, k: op(i, *a, **k), backend="neuron", dynamic=False)(inp, args, kwargs)
+                                        ~~^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py", line 1263, in __call__
+    return self.op(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+ (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/python_anomaly_mode.cpp:130.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[W1102 11:38:33.752962632 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=6fb42e7e8edfa0836cc4d865b36fcd64187a4d432e37e91c8370dec5fe1aef6e, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=e811367ac893c445aeabb66067dbef37} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:38:33Z [INTERNAL_ERROR] [NCC_ITEN406] Too many partition dimensions detected at {{{0,+,54}[3],+,216}[3],+,864}[3]. This is usually due to unsupported (strided) access pattern - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables.
+  (function log)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/autograd/graph.py:1072: UserWarning: Error detected in ConvolutionBackward0. Traceback of forward call that caused the error:
+  File "/home/ec2-user/torch-neuronx/agent_space/overnight/vjp_sweep.py", line 44, in <lambda>
+    out = torch.compile(lambda i, a, k: op(i, *a, **k), backend="neuron", dynamic=False)(inp, args, kwargs)
+                                        ~~^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py", line 1263, in __call__
+    return self.op(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+ (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/python_anomaly_mode.cpp:130.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+[W1102 11:38:40.149084294 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=806230a880375d1db4acff68773a970bd01eda26faf603cef8cb62c377126caf, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=b331789459560955e8f049e7cb4edf97} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:38:40Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619520.214008  691796 main.cc:908] IR signature: ed49a760bc775185efd402270dea0a78487647a5431d5cb5e7a155d32d0b324a for module.mlir
+2026-11-02 11:38:40.214276: E hilo/hlo_passes/NeuronHloVerifier.cc:1190] /home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263 [ERROR] [NCC_EVRF010] Operation convolution does not support both input dilation and kernel dilation simultaneously. Consider modifying the operation to use either kernel or input dilation.
+%convolution.10 = f32[2,4,8]{2,1,0} convolution(%Arg_2.3, %reshape.9), window={size=3 pad=3_5 lhs_dilate=3 rhs_dilate=2}, dim_labels=bf0_0oi->bf0, feature_group_count=2, metadata={source_file="/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py" source_line=1263}
+
+  (function log)
+[W1102 11:39:32.516072529 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=fc993dffb253a470b0565a8fe18c419b687ead7a6d0a3a47763eccfb617fe42b, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=b158e05fe7b14b836d4df5b053ac47b1} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:39:32Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619572.575997  694258 main.cc:908] IR signature: 436bccf00b6030f1da0384cf47aec2979033b6f4c8012d622b347b8294f4dd5c for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: and broadcast compare constant iota parameter select slice 
+2026-11-02 11:39:32.577680: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:39:33.633041156 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=e1d0d95617f8a947d3f22b93ae7872c78697f8dc350d1c38cf1c78663e33c340, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=114ded18975bf885288030e53ebbaa5f} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:39:33Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619573.694146  694329 main.cc:908] IR signature: 56b5b1d61cacfe3a83305a83ae75f7ba4488968f67ed3ac6facaf569349fca18 for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: and broadcast compare constant iota parameter select slice 
+2026-11-02 11:39:33.695689: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return self.op(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py:4415: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return node.target(*args, **kwargs)  # type: ignore[operator]
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return self.op(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py:4415: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return node.target(*args, **kwargs)  # type: ignore[operator]
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return self.op(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py:4415: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return node.target(*args, **kwargs)  # type: ignore[operator]
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_bilinear` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)

@@ -1,0 +1,23 @@
+===== Forward graph 0 =====
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/_lazy_graph_module.py class <lambda>(torch.nn.Module):
+   def forward(self, arg0_1: "f32[32, 50][50, 1]neuron:0", arg1_1: "i64[4, 9][9, 1]neuron:0"):
+       _log_softmax: "f32[32, 50][50, 1]neuron:0" = torch.ops.aten._log_softmax.default(arg0_1, 1, False);  arg0_1 = None
+       slice_1: "i64[4, 8][9, 1]neuron:0" = torch.ops.aten.slice.Tensor(arg1_1, 1, 1, 9223372036854775807);  arg1_1 = None
+       clone: "i64[4, 8][8, 1]neuron:0" = torch.ops.aten.clone.default(slice_1, memory_format = torch.contiguous_format);  slice_1 = None
+       _unsafe_view: "i64[32][1]neuron:0" = torch.ops.aten._unsafe_view.default(clone, [32]);  clone = None
+       ne: "b8[32][1]neuron:0" = torch.ops.aten.ne.Scalar(_unsafe_view, -100)
+       full: "i64[][]neuron:0" = torch.ops.aten.full.default([], 0, dtype = torch.int64, device = device(type='neuron', index=0), pin_memory = False)
+       where: "i64[32][1]neuron:0" = torch.ops.aten.where.self(ne, _unsafe_view, full);  ne = full = None
+       unsqueeze: "i64[32, 1][1, 1]neuron:0" = torch.ops.aten.unsqueeze.default(where, 1);  where = None
+       gather: "f32[32, 1][1, 1]neuron:0" = torch.ops.aten.gather.default(_log_softmax, 1, unsqueeze);  _log_softmax = unsqueeze = None
+       squeeze: "f32[32][1]neuron:0" = torch.ops.aten.squeeze.dim(gather, 1);  gather = None
+       neg: "f32[32][1]neuron:0" = torch.ops.aten.neg.default(squeeze);  squeeze = None
+       ne_1: "b8[32][1]neuron:0" = torch.ops.aten.ne.Scalar(_unsafe_view, -100)
+       full_1: "f32[][]neuron:0" = torch.ops.aten.full.default([], 0, dtype = torch.float32, device = device(type='neuron', index=0), pin_memory = False)
+       where_1: "f32[32][1]neuron:0" = torch.ops.aten.where.self(ne_1, neg, full_1);  ne_1 = neg = full_1 = None
+       ne_2: "b8[32][1]neuron:0" = torch.ops.aten.ne.Scalar(_unsafe_view, -100);  _unsafe_view = None
+       sum_1: "i64[][]neuron:0" = torch.ops.aten.sum.default(ne_2);  ne_2 = None
+       _to_copy: "f32[][]neuron:0" = torch.ops.aten._to_copy.default(sum_1, dtype = torch.float32, device = device(type='neuron', index=0));  sum_1 = None
+       sum_2: "f32[][]neuron:0" = torch.ops.aten.sum.default(where_1);  where_1 = None
+       div: "f32[][]neuron:0" = torch.ops.aten.div.Tensor(sum_2, _to_copy);  sum_2 = _to_copy = None
+       return (div,)

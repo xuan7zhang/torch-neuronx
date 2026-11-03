@@ -1,0 +1,7 @@
+2026-Nov-02 10:39:46.571667 528407:528407  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)
+/home/ec2-user/torch-neuronx/torch_neuronx/nki_kernel.py:85: UserWarning: NKI_ENABLE_TRACE_CACHE=1: the NKI kernel compile cache is persisted across processes. The caching process may not capture all kernel environment dependencies or non-argument values and can yield stale cache hits; see the torch-neuronx environment variables documentation for details. Set NKI_ENABLE_TRACE_CACHE=0 to disable.
+  _warn_trace_cache_once()
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: index_reduce() is in beta and the API may change at any time. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/native/TensorAdvancedIndexing.cpp:1523.)
+  return self.op(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/common_methods_invocations.py:19760: UserWarning: ComplexHalf support is experimental and many operators don't support it yet. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/EmptyTensor.cpp:54.)
+  op=lambda x, *args, **kwargs: x.chalf(*args, **kwargs),

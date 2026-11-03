@@ -1,0 +1,38 @@
+2026-Nov-02 11:54:41.185564 733307:733307  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)
+/home/ec2-user/torch-neuronx/torch_neuronx/nki_kernel.py:85: UserWarning: NKI_ENABLE_TRACE_CACHE=1: the NKI kernel compile cache is persisted across processes. The caching process may not capture all kernel environment dependencies or non-argument values and can yield stale cache hits; see the torch-neuronx environment variables documentation for details. Set NKI_ENABLE_TRACE_CACHE=0 to disable.
+  _warn_trace_cache_once()
+[W1102 11:58:01.268202742 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=5e33ff3ee84e7b811806cf2c613f6f6ed031c553780823332629530d0f5b985e, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=15aea6715e31e6ad9b974a579075d22c} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:58:01Z max() iterable argument is empty
+  (function log)
+[W1102 11:58:39.011193079 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=9d94a33836bed342f3fbef244316018b8b1de443f0db4ba74f09d20ad77c8c6a, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=d27fe2625e6761019104e972517ce6d1} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:58:39Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620719.075680  741432 main.cc:908] IR signature: 24ee36561a0046009eb0ba1ad38a6fae7c05b1530f7a97455d931052186a2a8f for module.mlir
+2026-11-02 11:58:39.076140: E hilo/hlo_passes/NeuronHloVerifier.cc:1691] [ERROR] [NCC_EVRF064] HLO verification failed since the input HLO graph contains an illegal instruction that violates XLA shape constraints. Check the neuronx-cc logs for the specific issue with the HLO, and inspect the reported instruction and ensure all operand shapes are valid.
+
+  (function log)
+[W1102 11:58:40.737773862 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=3fcd57199d6472041c6410026857f39e74289e062d77f31fb29be4573f6030a7, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=844b655a6f31cba04b4a4deb37ed084f} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:58:40Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620720.800531  741513 main.cc:908] IR signature: 95cd36b246fac76118c7322c4fc3c00af1e1580b1eb118780e66afde8f0e18fb for module.mlir
+2026-11-02 11:58:40.801010: E hilo/hlo_passes/NeuronHloVerifier.cc:1691] [ERROR] [NCC_EVRF064] HLO verification failed since the input HLO graph contains an illegal instruction that violates XLA shape constraints. Check the neuronx-cc logs for the specific issue with the HLO, and inspect the reported instruction and ensure all operand shapes are valid.
+
+  (function log)
+Exception ignored in atexit callback <function dump_compile_times at 0x7fd8eaca4a90>:
+Traceback (most recent call last):
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py", line 925, in dump_compile_times
+    log.info(compile_times(repr="str", aggregate=True))
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py", line 907, in compile_times
+    (k, fmt_fn(compilation_time_metrics[k], item_fn=lambda x: f"{x:.4f}"))
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py", line 902, in fmt_fn
+    return item_fn(sum(values))
+  File "/home/ec2-user/torch-neuronx/torch_neuronx/neuron_dynamo_backend/metrics.py", line 72, in __iter__
+    self._ensure_resolved()
+  File "/home/ec2-user/torch-neuronx/torch_neuronx/neuron_dynamo_backend/metrics.py", line 68, in _ensure_resolved
+    self.extend(self._resolver())
+  File "/home/ec2-user/torch-neuronx/torch_neuronx/neuron_dynamo_backend/metrics.py", line 290, in _resolve_compile_timing
+    torch_neuronx.synchronize()
+  File "/home/ec2-user/torch-neuronx/torch_neuronx/__init__.py", line 711, in synchronize
+    _C._neuron_synchronize(device_index)
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/eval_frame.py", line 1548, in _fn
+    return fn(*args, **kwargs)
+RuntimeError: Compilation failed for CompilationCacheKey '{key=3fcd57199d6472041c6410026857f39e74289e062d77f31fb29be4573f6030a7, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=844b655a6f31cba04b4a4deb37ed084f}': Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:58:40Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620720.800531  741513 main.cc:908] IR signature: 95cd36b246fac76118c7322c4fc3c00af1e1580b1eb118780e66afde8f0e18fb for module.mlir
+2026-11-02 11:58:40.801010: E hilo/hlo_passes/NeuronHloVerifier.cc:1691] [ERROR] [NCC_EVRF064] HLO verification failed since the input HLO graph contains an illegal instruction that violates XLA shape constraints. Check the neuronx-cc logs for the specific issue with the HLO, and inspect the reported instruction and ensure all operand shapes are valid.
+
+

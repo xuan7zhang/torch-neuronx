@@ -1,0 +1,17 @@
+import torch, torch.nn.functional as F, torch_neuronx
+DEV = "neuron"
+torch.manual_seed(0)
+w = torch.randn(100, 32)
+ids = torch.randint(0, 100, (4, 10), generator=torch.Generator().manual_seed(0)).flatten()
+lg = (w[ids].double() @ w.double().t())
+l64 = F.cross_entropy(lg, ids).item()
+lc = F.cross_entropy(lg.float(), ids).item()
+ln = F.cross_entropy(lg.float().to(DEV), ids.to(DEV)).item()
+print(f"loss fp64 {l64:.6e} cpu fp32 {lc:.6e} (abs err {abs(lc-l64):.1e}) neuron {ln:.6e} (abs err {abs(ln-l64):.1e})")
+x = lg.float()
+per64 = F.cross_entropy(lg, ids, reduction="none")
+pern = F.cross_entropy(x.to(DEV), ids.to(DEV), reduction="none").cpu().double()
+perc = F.cross_entropy(x, ids, reduction="none").double()
+print("per-row max abs err cpu", (perc - per64).abs().max().item(), "neuron", (pern - per64).abs().max().item())
+i = (pern - per64).abs().argmax()
+print("worst row: fp64", per64[i].item(), "cpu", perc[i].item(), "neuron", pern[i].item())

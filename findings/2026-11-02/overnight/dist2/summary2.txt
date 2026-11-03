@@ -1,0 +1,15 @@
+== collectives_all exit=1
+== tp_sequence_parallel exit=0
+RESULT [tp_sequence_parallel] rank0 OK       tp_sequence_parallel maxdiff=3.129243850708008e-07
+== tp_fsdp2_compile exit=0
+RESULT [tp_fsdp2_compile] rank0 OK       tp_fsdp2_compile maxdiff=3.948807716369629e-07
+== fsdp2_ac exit=0
+RESULT [fsdp2_ac] rank0 OK       fsdp2_ac (AC vs no-AC grads, same seed) maxdiff=0
+RESULT [fsdp2_ac] rank0 OK       fsdp2_ac (vs CPU) maxdiff=2.98e-08
+== fsdp2_ac_reentrant exit=0
+RESULT [fsdp2_ac_reentrant] rank0 ERROR    fsdp2_ac_reentrant: AttributeError: 'NoneType' object has no attribute 'full_tensor'
+== fsdp2_ac_dropout exit=0
+RESULT [fsdp2_ac_dropout] rank0 MISMATCH fsdp2_ac_dropout (AC vs no-AC grads, same seed) maxdiff=0.04187
+== ddp_fp16_hook_bf16 exit=0
+RESULT [ddp_fp16_hook_bf16] rank0 OK       ddp comm hook allreduce maxdiff=1.4901161193847656e-08
+RESULT [ddp_fp16_hook_bf16] rank0 OK       ddp comm hook fp16 maxdiff=6.452202796936035e-06

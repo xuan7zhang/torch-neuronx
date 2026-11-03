@@ -1,0 +1,7 @@
+===== Forward graph 0 =====
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/_lazy_graph_module.py class <lambda>(torch.nn.Module):
+   def forward(self, arg0_1: "i64[4, 9][9, 1]neuron:0"):
+       slice_1: "i64[4, 8][9, 1]neuron:0" = torch.ops.aten.slice.Tensor(arg0_1, 1, 1, 9223372036854775807);  arg0_1 = None
+       clone: "i64[4, 8][8, 1]neuron:0" = torch.ops.aten.clone.default(slice_1, memory_format = torch.contiguous_format);  slice_1 = None
+       _unsafe_view: "i64[32][1]neuron:0" = torch.ops.aten._unsafe_view.default(clone, [32]);  clone = None
+       return (_unsafe_view,)

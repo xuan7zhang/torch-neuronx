@@ -1,0 +1,23 @@
+== tp_llama_plan exit=0
+RESULT [tp_llama_plan] rank0 ERROR    tp_llama_plan: RuntimeError: aten._foreach_mul_.Scalar got mixed torch.Tensor and DTensor, need to convert all torch.Tensor to DTensor before calling distributed operators!
+== tp_llama_loss_parallel exit=0
+RESULT [tp_llama_loss_parallel] rank0 ERROR    tp_llama_loss_parallel: RuntimeError: aten._foreach_mul_.Scalar got mixed torch.Tensor and DTensor, need to convert all torch.Tensor to DTensor before calling distributed operators!
+== fsdp2_cpu_offload exit=0
+RESULT [fsdp2_cpu_offload] rank0 ERROR    fsdp2_cpu_offload: RuntimeError: No backend type associated with device type cpu
+== fsdp2_llama exit=0
+RESULT [fsdp2_llama] rank0 OK       fsdp2_llama param maxdiff=6.16e-05 losses=[5.01529, 3.68881, 2.57827] ref=[5.01529, 3.68881, 2.57827]
+== fsdp2_llama_compile exit=0
+RESULT [fsdp2_llama_compile] rank0 OK       fsdp2_llama_compile param maxdiff=2.71e-05 losses=[5.01529, 3.68881, 2.57827] ref=[5.01529, 3.68881, 2.57827]
+== dtensor_ops exit=0
+RESULT [dtensor_ops] rank0 OK       dtensor grad shard1 
+RESULT [dtensor_ops] rank0 OK       dtensor matmul shard0 x rep 
+RESULT [dtensor_ops] rank0 OK       dtensor matmul shard1 x shard0 (partial) (Partial(sum),)
+RESULT [dtensor_ops] rank0 OK       dtensor softmax/sum/mean 
+RESULT [dtensor_ops] rank0 OK       redistribute [Replicate()]->[Shard(dim=0)] 
+RESULT [dtensor_ops] rank0 OK       redistribute [Shard(dim=0)]->[Shard(dim=1)] 
+RESULT [dtensor_ops] rank0 OK       redistribute [Shard(dim=1)]->[Replicate()] 
+RESULT [dtensor_ops] rank0 OK       uneven shard full_tensor [3]
+RESULT [dtensor_ops] rank0 OK       uneven shard sum 
+== ddp_sdpa_dropout_compile_vs_eager exit=0
+RESULT [ddp_sdpa_dropout_compile_vs_eager] rank0 MISMATCH ddp sdpa dropout eager v.grad err=1.75
+RESULT [ddp_sdpa_dropout_compile_vs_eager] rank0 OK       ddp sdpa dropout compile v.grad err=6.79e-06

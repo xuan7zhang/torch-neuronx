@@ -1,0 +1,1 @@
+2026-Nov-02 11:21:34.644830 659257:659257  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)

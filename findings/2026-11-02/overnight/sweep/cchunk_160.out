@@ -1,0 +1,71 @@
+2026-Nov-02 11:40:49.595699 696946:696946  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)
+/home/ec2-user/torch-neuronx/torch_neuronx/nki_kernel.py:85: UserWarning: NKI_ENABLE_TRACE_CACHE=1: the NKI kernel compile cache is persisted across processes. The caching process may not capture all kernel environment dependencies or non-argument values and can yield stale cache hits; see the torch-neuronx environment variables documentation for details. Set NKI_ENABLE_TRACE_CACHE=0 to disable.
+  _warn_trace_cache_once()
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return self.op(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py:4415: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return node.target(*args, **kwargs)  # type: ignore[operator]
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return self.op(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py:4415: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return node.target(*args, **kwargs)  # type: ignore[operator]
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return self.op(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/_dynamo/utils.py:4415: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return node.target(*args, **kwargs)  # type: ignore[operator]
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/fx/interpreter.py:377: UserWarning: `nn.functional.upsample_nearest` is deprecated. Use `nn.functional.interpolate` instead.
+  return target(*args, **kwargs)
+[W1102 11:42:22.097267760 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=11d4c5f45ec78e6023de567b3d90224f517dc14fafc2facb4fce5d64abf9360c, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=0e8a65304251ba507412449d6abe23d1} error= Command failed (neuronx-cc compilation) with exit code 245  (function log)
+[W1102 11:42:37.496711429 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=a838eac4f133afb41fa924d5c612c10f9909b8b21542aa5b92de3dbfb7ca313d, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=84b8e67f6503957d476dfb5cd4cf9dbf} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:42:37Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619757.546176  701798 main.cc:908] IR signature: e68e051f83ea7105c52f0f49834c633f6e674686602338e29c6f3fe0d42c37bb for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: and compare constant parameter select 
+2026-11-02 11:42:37.547546: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:42:37.810718563 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=0031fdffba214510497ef5690a0d6a2ae8a09107077560c39ebf14bf99e7968f, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=2aad98444c68787f1d365b7e8a4002a9} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:42:37Z max() iterable argument is empty
+  (function log)
+[W1102 11:42:41.740216537 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=220eb220491910bd68915c6d644cf035dde7cde5bfd94f151599e57e3d218846, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=7b0761775eda749b454b1dc57e67a570} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:42:41Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619761.800763  702057 main.cc:908] IR signature: ef962de81a113e8debeca17ec83c1fa5cfed15bb3590f96cd231c478a9fbb59b for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: abs constant exponential multiply negate parameter subtract 
+2026-11-02 11:42:41.802415: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:42:41.743443302 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=3830ddef4336e47ed89794a728a09f2c300bf76c159d0535f19d6c7a6c122262, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=5b02aa309d97e30aa9b6816a2f974735} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:42:41Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619761.803441  702058 main.cc:908] IR signature: 133170c53bbfeca6a979b860698a98115efad60c162c9d24b614dae35049aa6d for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: abs exponential log-plus-one negate parameter subtract tuple 
+2026-11-02 11:42:41.805397: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:42:45.675264022 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=0566b35ce923d4d27fa6d5781fc7c4da899c7b87e14e7a72b86ae5e2a5af1baa, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=057d521c4c1b364d44ccd1767943042c} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:42:45Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619765.697826  702327 main.cc:908] IR signature: 00316a41d89eb73278befea2c44a34da7c99a467c24e64335661a228c4a73551 for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: compare constant exponential log-plus-one multiply parameter select tanh tuple 
+2026-11-02 11:42:45.712445: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:42:45.756996212 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=ec00ca11a6cba4255b64ac1531dd00a5194d1d0849eced8abf1b8905a93b593c, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=ee738340d8a45d873ada21bcd6529e94} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:42:45Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793619765.816497  702330 main.cc:908] IR signature: f9d23e67b1dfac88f548626e913a2fd303c7ae2a72cf0fdef78b4f8b71b4d23e for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: add compare constant exponential log-plus-one logistic multiply parameter select subtract tanh 
+2026-11-02 11:42:45.818812: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:42:50.164684581 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=c353cca63ee5485fe96bbeed23a3292ae6dde4524e0b373c8eaedd756fa1f757, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=b963a40767aa4d49a8f342bb80446b85} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:42:50Z [INTERNAL_ERROR] [NCC_IZST902] ZeroSizeTensorElimination error: Pelican exception: Value is finalized before all edges are gone at neuronxcc/pelican/include/pelican/IR/Value.h:135: _users.empty() - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables.
+  (function log)
+[W1102 11:43:08.161921985 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=5b548102d6f4e68ead7e9cd037e0bba841d9dd6ee68f530119aab0dfb687f922, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=45fcd27b04e19f752eded889dcc39386} error= Command failed (neuronx-cc compilation) with exit code 245  (function log)
+[W1102 11:43:12.482696659 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=a4599fc5ac9d6eac812b240dfb27adee7e3954c90dfd0313a271c380ac9ed63a, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=f34cead5a13b8b3dbaa32c48dd652aad} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:43:12Z [INTERNAL_ERROR] [NCC_IZST902] ZeroSizeTensorElimination error: Pelican exception: Value is finalized before all edges are gone at neuronxcc/pelican/include/pelican/IR/Value.h:135: _users.empty() - Please open a support ticket at https://github.com/aws-neuron/aws-neuron-sdk/issues/new. You may also be able to obtain more information using the 'XLA_IR_DEBUG' and 'XLA_HLO_DEBUG' environment variables.
+  (function log)
+[W1102 11:43:14.672121291 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=98b04ccd59ed6cb2832455f93a6e895f364ab38d03e087c0e21a7e27e1dbfaa1, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=0174bfdfd8e7b93d7be1a9cd3966e79a} error= Command failed (neuronx-cc compilation) with exit code 250  (function log)

@@ -1,0 +1,98 @@
+== collectives_all exit=0 secs=47
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.SUM torch.float32 [10.0, 10.0]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.SUM torch.bfloat16 [10.0, 10.0]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.SUM torch.int32 [10, 10]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.SUM torch.int64 [10, 10]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.MAX torch.float32 [4.0, 4.0]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.MAX torch.bfloat16 [4.0, 4.0]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.MAX torch.int32 [4, 4]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.MAX torch.int64 [4, 4]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.MIN torch.float32 [1.0, 1.0]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.MIN torch.bfloat16 [1.0, 1.0]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.MIN torch.int32 [1, 1]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.MIN torch.int64 [1, 1]
+RESULT [collectives_all] rank0 MISMATCH all_reduce RedOpType.PRODUCT torch.float32 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank0 MISMATCH all_reduce RedOpType.PRODUCT torch.bfloat16 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank0 MISMATCH all_reduce RedOpType.PRODUCT torch.int32 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank0 MISMATCH all_reduce RedOpType.PRODUCT torch.int64 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.AVG torch.float32 [2.5, 2.5]
+RESULT [collectives_all] rank0 OK       all_reduce RedOpType.AVG torch.bfloat16 [2.5, 2.5]
+RESULT [collectives_all] rank0 ERROR    collectives_all: RuntimeError: Direct Neuron-to-CPU copy exceeds source storage bounds
+RESULT [collectives_all] rank1 MISMATCH all_reduce RedOpType.PRODUCT torch.float32 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank1 MISMATCH all_reduce RedOpType.PRODUCT torch.bfloat16 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank1 MISMATCH all_reduce RedOpType.PRODUCT torch.int32 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank1 MISMATCH all_reduce RedOpType.PRODUCT torch.int64 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank1 ERROR    collectives_all: RuntimeError: Direct Neuron-to-CPU copy exceeds source storage bounds
+RESULT [collectives_all] rank2 MISMATCH all_reduce RedOpType.PRODUCT torch.float32 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank2 MISMATCH all_reduce RedOpType.PRODUCT torch.bfloat16 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank2 MISMATCH all_reduce RedOpType.PRODUCT torch.int32 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank2 MISMATCH all_reduce RedOpType.PRODUCT torch.int64 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank2 ERROR    collectives_all: RuntimeError: Direct Neuron-to-CPU copy exceeds source storage bounds
+RESULT [collectives_all] rank3 MISMATCH all_reduce RedOpType.PRODUCT torch.float32 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank3 MISMATCH all_reduce RedOpType.PRODUCT torch.bfloat16 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank3 MISMATCH all_reduce RedOpType.PRODUCT torch.int32 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank3 MISMATCH all_reduce RedOpType.PRODUCT torch.int64 ERROR Compilation error occurred on Neuron for operation=allreduce;
+RESULT [collectives_all] rank3 ERROR    collectives_all: RuntimeError: Direct Neuron-to-CPU copy exceeds source storage bounds
+== funcol exit=0 secs=34
+RESULT [funcol] rank0 OK       fc.all_reduce 
+RESULT [funcol] rank0 OK       fc.all_gather_tensor dim1 (2, 12)
+RESULT [funcol] rank0 OK       fc.reduce_scatter dim1 (2, 3)
+RESULT [funcol] rank0 OK       fc.all_to_all_single 
+RESULT [funcol] rank0 OK       dist.nn all_reduce backward [20.0, 20.0, 20.0]
+RESULT [funcol] rank0 OK       dist.nn all_gather backward [4.0, 4.0]
+RESULT [funcol] rank0 OK       all_gather_tensor_autograd bwd [[0.0, 0.0], [4.0, 4.0]]
+RESULT [funcol] rank0 OK       reduce_scatter_tensor_autograd bwd [1.0, 1.0, 2.0, 2.0, 3.0, 3.0, 4.0, 4.0]
+RESULT [funcol] rank0 OK       compiled funcol 
+== subgroups exit=0 secs=35
+RESULT [subgroups] rank0 OK       new_group all_reduce [3.0, 3.0]
+RESULT [subgroups] rank0 OK       new_subgroups 1.0
+RESULT [subgroups] rank0 OK       mesh tp/dp groups (1.0, 2.0)
+RESULT [subgroups] rank0 OK       interleaved groups 
+== tp_mlp exit=0 secs=46
+RESULT [tp_mlp] rank0 OK       tp_mlp maxdiff=2.384185791015625e-07
+== tp_mlp_foreach exit=0 secs=30
+RESULT [tp_mlp_foreach] rank0 OK       tp_mlp_foreach maxdiff=2.421438694000244e-07
+== tp_mlp_clip exit=0 secs=20
+RESULT [tp_mlp_clip] rank0 OK       tp_mlp_clip maxdiff=2.421438694000244e-07
+== tp_sequence_parallel exit=0 secs=25
+RESULT [tp_sequence_parallel] rank0 ERROR    tp_sequence_parallel: RuntimeError: aten.add.Tensor got mixed torch.Tensor and DTensor, need to convert all torch.Tensor to DTensor before calling distributed operators!
+RESULT [tp_sequence_parallel] rank1 ERROR    tp_sequence_parallel: RuntimeError: aten.add.Tensor got mixed torch.Tensor and DTensor, need to convert all torch.Tensor to DTensor before calling distributed operators!
+RESULT [tp_sequence_parallel] rank2 ERROR    tp_sequence_parallel: RuntimeError: aten.add.Tensor got mixed torch.Tensor and DTensor, need to convert all torch.Tensor to DTensor before calling distributed operators!
+RESULT [tp_sequence_parallel] rank3 ERROR    tp_sequence_parallel: RuntimeError: aten.add.Tensor got mixed torch.Tensor and DTensor, need to convert all torch.Tensor to DTensor before calling distributed operators!
+== tp_fsdp2 exit=0 secs=46
+RESULT [tp_fsdp2] rank0 OK       tp_fsdp2 maxdiff=3.948807716369629e-07
+== tp_fsdp2_compile exit=1 secs=29
+== fsdp2_ac exit=0 secs=28
+RESULT [fsdp2_ac] rank0 ERROR    fsdp2_ac: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+RESULT [fsdp2_ac] rank1 ERROR    fsdp2_ac: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+RESULT [fsdp2_ac] rank2 ERROR    fsdp2_ac: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+RESULT [fsdp2_ac] rank3 ERROR    fsdp2_ac: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+== fsdp2_ac_reentrant exit=0 secs=24
+RESULT [fsdp2_ac_reentrant] rank0 ERROR    fsdp2_ac_reentrant: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+RESULT [fsdp2_ac_reentrant] rank1 ERROR    fsdp2_ac_reentrant: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+RESULT [fsdp2_ac_reentrant] rank2 ERROR    fsdp2_ac_reentrant: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+RESULT [fsdp2_ac_reentrant] rank3 ERROR    fsdp2_ac_reentrant: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+== fsdp2_ac_dropout exit=0 secs=17
+RESULT [fsdp2_ac_dropout] rank0 ERROR    fsdp2_ac_dropout: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+RESULT [fsdp2_ac_dropout] rank1 ERROR    fsdp2_ac_dropout: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+RESULT [fsdp2_ac_dropout] rank2 ERROR    fsdp2_ac_dropout: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+RESULT [fsdp2_ac_dropout] rank3 ERROR    fsdp2_ac_dropout: TypeError: apply_activation_checkpointing() got an unexpected keyword argument 'checkpoint_impl'
+== dcp_save4 exit=0 secs=37
+RESULT [dcp_save4] rank0 OK       fsdp2 uneven dims 1 step maxdiff=1.000240445137024e-06
+RESULT [dcp_save4] rank0 OK       dcp save 
+== dcp_load4_full exit=0 secs=44
+RESULT [dcp_load4_full] rank0 OK       dcp load into unsharded model + 2 steps maxdiff=9.969808161258698e-07
+== ddp_uneven_join exit=0 secs=26
+RESULT [ddp_uneven_join] rank0 OK       ddp join uneven inputs (params equal across ranks) 
+== ddp_fp16_hook_bf16 exit=0 secs=15
+RESULT [ddp_fp16_hook_bf16] rank0 ERROR    ddp_fp16_hook_bf16: TypeError: BF16 all reduce communication hook required CUDA 11+ and NCCL 2.10+ or XPU and XCCL
+RESULT [ddp_fp16_hook_bf16] rank1 ERROR    ddp_fp16_hook_bf16: TypeError: BF16 all reduce communication hook required CUDA 11+ and NCCL 2.10+ or XPU and XCCL
+RESULT [ddp_fp16_hook_bf16] rank2 ERROR    ddp_fp16_hook_bf16: TypeError: BF16 all reduce communication hook required CUDA 11+ and NCCL 2.10+ or XPU and XCCL
+RESULT [ddp_fp16_hook_bf16] rank3 ERROR    ddp_fp16_hook_bf16: TypeError: BF16 all reduce communication hook required CUDA 11+ and NCCL 2.10+ or XPU and XCCL
+== fsdp2_misc exit=0 secs=38
+RESULT [fsdp2_misc] rank0 OK       fsdp2 grad accum no-sync + reshard_after_forward=False maxdiff=1.043081283569336e-07
+RESULT [fsdp2_misc] rank0 OK       fsdp2 bf16 params fp32 reduce maxdiff=0.022282220423221588
+RESULT [fsdp2_misc] rank0 OK       fsdp2 full_state_dict cpu_offload 
+== dcp_load2 exit=0 secs=41
+RESULT [dcp_load2] rank0 OK       dcp reshard 4->2 + 2 steps maxdiff=9.96515154838562e-07
+RESULT [dcp_load2] rank1 OK       dcp reshard 4->2 + 2 steps maxdiff=9.96515154838562e-07

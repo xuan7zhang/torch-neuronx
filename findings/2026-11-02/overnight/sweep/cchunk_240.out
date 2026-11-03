@@ -1,0 +1,38 @@
+2026-Nov-02 11:46:16.451808 711482:711482  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)
+/home/ec2-user/torch-neuronx/torch_neuronx/nki_kernel.py:85: UserWarning: NKI_ENABLE_TRACE_CACHE=1: the NKI kernel compile cache is persisted across processes. The caching process may not capture all kernel environment dependencies or non-argument values and can yield stale cache hits; see the torch-neuronx environment variables documentation for details. Set NKI_ENABLE_TRACE_CACHE=0 to disable.
+  _warn_trace_cache_once()
+WARNING:torch_neuronx.neuron_dynamo_backend.fx.passes.vocab_sharding_spmd:ShardIndexInjection: conflicting shard indices {0, 1}, skipping injection
+[W1102 11:47:23.302631225 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=cf07580768218f49a1da5af9993e7e4b99290f727d4fa6db58561769041eaec5, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=80987163a0df0fde75a335ec92bc0400} error= Command failed (neuronx-cc compilation) with exit code 245  (function log)
+[W1102 11:47:29.550807185 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=47bdc296ca66bba6b763dde4b1dd769ae9bc504603877946e9bc850a3a759e7d, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=8336ce9f951afeb90aafb33bd0b6751d} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:47:29Z WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1793620049.610877  713972 main.cc:908] IR signature: 2f53bfe1194762d8c89850255303cf33c307f4a4e06575674bffb5a4b396beeb for module.mlir
+Replaced 0 dropout sequences with OffloadedDropout
+HLO Ops used in computation: compare constant parameter select tuple 
+2026-11-02 11:47:29.612396: E hilo/MLIRPasses/Transforms/StableHLOToPythonPrinter.cc:837] [ERROR] [NCC_ISPP060] Unsupported use of a zero-sized tensor detected. Check tensor dimensions and ensure all tensors have valid non-zero sizes.
+
+  (function log)
+[W1102 11:47:32.266652858 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=3149a6c0982adad264e56bb23ce0e379b8b63b10b3a5ff015fbc8f29eeee6b9d, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=5b4090c14a157658634841db68e86098} error= Command failed (neuronx-cc compilation) with exit code 250  (function log)
+[W1102 11:47:39.959226103 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=4f1ec54c02056e7d5611f70a6cd112a73e28805569f5e0954e19ef6e61b459fa, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=fa2cd9a53d20edefc5672b1a628c531e} error= Command failed (neuronx-cc compilation) with exit code 245  (function log)
+[W1102 11:47:43.222938133 NeuronLogging.h:103] Warning: [Neuron] [ERROR] [torch_neuronx/csrc/core/compilation/CompilationCache.cpp:962] Compilation error CompilationCacheKey= {key=9aa8dfbdc99ceddae5b6484b86557b5bfcc108ebb867473b46393889baf6f969, platform=trn2, lnc=2, compiler_args=--model-type transformer --auto-cast=none, optimization_level=-O2, source=TORCH_COMPILE, persistent_key=62964d554256b8667767002012f2f78f} error= Command failed (neuronx-cc compilation) with exit code 70: 2026-11-02T11:47:43Z max() iterable argument is empty
+  (function log)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/autograd/graph.py:1072: UserWarning: Error detected in IndexFillBackward1. Traceback of forward call that caused the error:
+  File "/home/ec2-user/torch-neuronx/agent_space/overnight/vjp_sweep.py", line 44, in <lambda>
+    out = torch.compile(lambda i, a, k: op(i, *a, **k), backend="neuron", dynamic=False)(inp, args, kwargs)
+                                        ~~^^^^^^^^^^^^
+  File "/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py", line 1263, in __call__
+    return self.op(*args, **kwargs)
+           ~~~~~~~^^^^^^^^^^^^^^^^^
+ (Triggered internally at /__w/pytorch/pytorch/torch/csrc/autograd/python_anomaly_mode.cpp:130.)
+  return Variable._execution_engine.run_backward(  # Calls into the C++ engine to run the backward pass
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0] Backend compiler exception
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0]   Explanation: Backend compiler `neuron` failed with aten._unique.default. Adding a graph break.
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0]   Hint: Report an issue to the backend compiler repo.
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0] 
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0]   Developer debug context: Backend: neuron
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0]     Exception:aten._unique.default
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0]     Traceback:
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0]       File "/home/ec2-user/torch-neuronx/agent_space/overnight/vjp_sweep.py", line 44, in <lambda>
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0]         out = torch.compile(lambda i, a, k: op(i, *a, **k), backend="neuron", dynamic=False)(inp, args, kwargs)
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0]                                             ~~^^^^^^^^^^^^
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0] 
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0] 
+W1102 11:48:49.948000 711482 torch/_dynamo/exc.py:761] [0/0]  For more details about this graph break, please visit: https://meta-pytorch.github.io/compile-graph-break-site/gb/gb0219.html

@@ -1,0 +1,23 @@
+=== ep_all_to_all_autograd_uneven (exit 0)
+R0 ep_all_to_all_autograd_uneven: {'x_grad': 8.890399527672344e-08, 'expert_w_grad': 0.0, 'fwd_back': 8.193594425165429e-08}
+R1 ep_all_to_all_autograd_uneven: {'x_grad': 1.104179503386149e-07, 'expert_w_grad': 0.0, 'fwd_back': 7.727650341848857e-08}
+R2 ep_all_to_all_autograd_uneven: {'x_grad': 7.920552747009424e-08, 'expert_w_grad': 0.0, 'fwd_back': 9.083168350798587e-08}
+R3 ep_all_to_all_autograd_uneven: {'x_grad': 1.1029977997623064e-07, 'expert_w_grad': 0.0, 'fwd_back': 9.377185961056966e-08}
+=== hsdp_2x2 (exit 0)
+R0 hsdp_2x2: {'params': 1.2788993331014353e-07, 'grad_norm': 7.945024549371738e-08}
+R1 hsdp_2x2: {'params': 1.2788993331014353e-07, 'grad_norm': 7.945024549371738e-08}
+R2 hsdp_2x2: {'params': 1.2788993331014353e-07, 'grad_norm': 7.945024549371738e-08}
+R3 hsdp_2x2: {'params': 1.2788993331014353e-07, 'grad_norm': 7.945024549371738e-08}
+=== dtensor_op_sweep (exit 0)
+R0 dtensor_op_sweep: 82/93 ok; not ok: {'softmax0/S0': 'rel 1.16', 'softmax0/S1': 'rel 1.16', 'softmax0/R': 'rel 1.16', 'softmax1/S0': 'rel 0.895', 'softmax1/S1': 'rel 1.01', 'softmax1/R': 'rel 1.01', 'layer_norm/S0': 'rel 1.48', 'layer_norm/S1': 'rel 1.48', 'layer_norm/R': 'rel 1.48', 'mse/S0': 'rel 3', 'mse/S1': 'rel 3'}
+R1 dtensor_op_sweep: 82/93 ok; not ok: {'softmax0/S0': 'rel 1.16', 'softmax0/S1': 'rel 1.16', 'softmax0/R': 'rel 1.16', 'softmax1/S0': 'rel 0.895', 'softmax1/S1': 'rel 1.01', 'softmax1/R': 'rel 1.01', 'layer_norm/S0': 'rel 1.48', 'layer_norm/S1': 'rel 1.48', 'layer_norm/R': 'rel 1.48', 'mse/S0': 'rel 3', 'mse/S1': 'rel 3'}
+R2 dtensor_op_sweep: 82/93 ok; not ok: {'softmax0/S0': 'rel 1.16', 'softmax0/S1': 'rel 1.16', 'softmax0/R': 'rel 1.16', 'softmax1/S0': 'rel 0.895', 'softmax1/S1': 'rel 1.01', 'softmax1/R': 'rel 1.01', 'layer_norm/S0': 'rel 1.48', 'layer_norm/S1': 'rel 1.48', 'layer_norm/R': 'rel 1.48', 'mse/S0': 'rel 3', 'mse/S1': 'rel 3'}
+R3 dtensor_op_sweep: 82/93 ok; not ok: {'softmax0/S0': 'rel 1.16', 'softmax0/S1': 'rel 1.16', 'softmax0/R': 'rel 1.16', 'softmax1/S0': 'rel 0.895', 'softmax1/S1': 'rel 1.01', 'softmax1/R': 'rel 1.01', 'layer_norm/S0': 'rel 1.48', 'layer_norm/S1': 'rel 1.48', 'layer_norm/R': 'rel 1.48', 'mse/S0': 'rel 3', 'mse/S1': 'rel 3'}
+=== dcp_async_save (exit 0)
+R0 dcp_async_save: {'loaded_equals_pre_mutation': 0.0}
+R3 dcp_async_save: {'loaded_equals_pre_mutation': 0.0}R1 dcp_async_save: {'loaded_equals_pre_mutation': 0.0}R2 dcp_async_save: {'loaded_equals_pre_mutation': 0.0}
+=== tp_fsdp_compile_clip (exit 0)
+R0 tp_fsdp_compile_clip: ERROR RuntimeError: All operands in aten.stack.default must have the same mesh, but got DeviceMesh((dp=2), 'neuron', stride=(2,)) and DeviceMesh((dp=2, tp=2), 'neuron', stride=(2, 1)).  Sharding propagation failed for aten.stack.default([DTensorSpec(mesh=DeviceMesh((dp=2, tp=2), 'neuron', stride=(2, 1)), placements=(_N
+R1 tp_fsdp_compile_clip: ERROR RuntimeError: All operands in aten.stack.default must have the same mesh, but got DeviceMesh((dp=2), 'neuron', stride=(2,)) and DeviceMesh((dp=2, tp=2), 'neuron', stride=(2, 1)).  Sharding propagation failed for aten.stack.default([DTensorSpec(mesh=DeviceMesh((dp=2, tp=2), 'neuron', stride=(2, 1)), placements=(_N
+R2 tp_fsdp_compile_clip: ERROR RuntimeError: All operands in aten.stack.default must have the same mesh, but got DeviceMesh((dp=2), 'neuron', stride=(2,)) and DeviceMesh((dp=2, tp=2), 'neuron', stride=(2, 1)).  Sharding propagation failed for aten.stack.default([DTensorSpec(mesh=DeviceMesh((dp=2, tp=2), 'neuron', stride=(2, 1)), placements=(_N
+R3 tp_fsdp_compile_clip: ERROR RuntimeError: All operands in aten.stack.default must have the same mesh, but got DeviceMesh((dp=2), 'neuron', stride=(2,)) and DeviceMesh((dp=2, tp=2), 'neuron', stride=(2, 1)).  Sharding propagation failed for aten.stack.default([DTensorSpec(mesh=DeviceMesh((dp=2, tp=2), 'neuron', stride=(2, 1)), placements=(_N

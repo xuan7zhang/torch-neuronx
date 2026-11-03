@@ -1,11 +1,10 @@
 # Overnight report: torch-neuronx training issues
 
-Copied from `agent_space/` (gitignored). Script paths `overnight/X.py` in this file refer to `X.py` in this directory.
-
 Run: 2026-11-02 08:22 UTC on trn2.3xlarge (4 logical cores). Scripts and logs in `agent_space/overnight/`.
 Status: done. Active work ran 08:22-12:10 UTC. At about 12:10 the memory/mixed-device probe
 (`overnight/mem_mixed.py`) was killed (exit 137) and the loop did not resume, so 12:10-17:22 had no work and that
 probe has no results. A second session started at 17:25 UTC to continue; its results are added below and in the table.
+A third session (2026-11-02 21:00 to 2026-11-03 00:30 UTC) added findings 17-20 (error recovery round).
 
 | # | Finding | Kind | Known? |
 |---|---|---|---|
@@ -25,6 +24,10 @@ probe has no results. A second session started at 17:25 UTC to continue; its res
 | 14 | bf16/fp16 adaptive avg pool, non-divisible size, permuted values | silent wrong | no (fix tested) |
 | 15 | `manual_seed` before the first Neuron op is ignored by the device RNG | silent, reproducibility | no (fix tested) |
 | 16 | fp32 SDPA with L % 128 == 0 runs at bf16 precision (NKI flash path) | silent precision loss | no |
+| 17 | `nll_loss` / `gather` with an out-of-range target or index return 0, no error | silent wrong loss/grads | no (fix tested) |
+| 18 | OOM is a plain `RuntimeError`, reported async; `memory_allocated` goes negative | error type, wrong counter | no |
+| 19 | A tensor with 2^32 or more elements fails to fill ("Invalid NEFF") | error, poor message | no |
+| 20 | A compile error is raised again by the next unrelated op | error reported twice | no |
 
 All "fix tested" items were tested in process (monkeypatch) or with a reverted edit. No file in the repo is changed.
 
@@ -85,6 +88,7 @@ the delegation above is). Note: the lowering result is
 cached per shape, so a test must use a new shape or clear the cache.
 
 Known? No. The only SDPA dropout xfail (`aten_xfails_registry.py`, NaN through dropped positions) is a different issue.
+Filed as https://github.com/aws-neuron/torch-neuronx/issues/1031 (2026-11-02).
 
 ### 2. Activation checkpointing gives silently wrong gradients when the block has dropout
 
@@ -497,6 +501,108 @@ Side note: the per-shape lowering cache ignores `TORCH_NEURONX_ENABLE_NKI_SDPA`.
 keeps the non-NKI result in later processes with the flag at 1 (L=384 above), so the env var does not act for cached
 shapes.
 
+### 17. `nll_loss` and `gather` with an out-of-range target or index return 0 (silent wrong loss and grads)
+
+`F.nll_loss(log_probs, target)` with a target `>= C` or `< 0` (and not `ignore_index`) gives no error. Each bad row adds 0
+to the loss but still counts in the mean, and its gradient is dropped. `x.gather(1, idx)` with an out-of-range index
+returns 0. CPU raises `IndexError` and CUDA raises a device-side assert. Typical causes: a label equal to
+`num_classes` (off by one), or `-1` used as the "ignore" label without `ignore_index=-1`. `F.cross_entropy` is not
+affected: it has an in-graph check.
+
+Repro (`overnight/r5/oob_nll.py`, `overnight/r5/oob1.py`): N=512, C=32000, 25% of targets set to C+3:
+```
+RES nll    N=512 C=32000: no error, loss=10.8600 (loss over valid rows only 10.8543), grad nonzero rows=384/512
+RES gather N=512 C=32000: no error, loss=10.8600 (loss over valid rows only 10.8543), grad nonzero rows=384/512
+RES nll_target_-5   cpu=raises neuron: no error -> [0.0]
+RES gather_7        cpu=raises neuron: no error -> [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+```
+Other index ops checked in the same way raise correctly: embedding (real table sizes), index_select, index_add,
+scatter_add, index_put, take, getitem, one_hot, cross_entropy. Only a tiny embedding table (10x4) returned a wrong row
+with no error (`oob_emb_sizes.py`); from 100x8 up it raises. The process recovers after each of these errors.
+
+Root cause: `cross_entropy_loss`, `one_hot` and the index ops call
+`python_ops/nki_kernels/bound_check.assert_index_in_bounds` inside the graph, and `_ce_error_handler` turns the
+device fault into the CPU `IndexError`. `nll_loss_forward` (`python_ops/torch_mlir/ops/loss.py`) and `aten::gather`
+(`python_ops/torch_mlir/ops/indexing.py`) have no such check, and the device gather returns 0 for an out-of-range row.
+
+Fix (tested in process, `overnight/r5/nll_fix_proto.py`): pass the target through `assert_index_in_bounds` after
+mapping `ignore_index` to 0, as `cross_entropy_loss` does. With valid targets the loss matches CPU (10.87669); with a
+bad target the device raises. Add an error handler like `_ce_error_handler` to give the CPU message. Do the same for
+`aten::gather` with `index`.
+
+Known? No.
+
+### 18. OOM is a plain `RuntimeError` and is reported later; `memory_allocated` goes negative after a failed allocation
+
+(a) An out-of-memory error is `RuntimeError("NRT Execution error ... lazy::AllocBind: NRT_RESOURCE ...")`. It is not
+`torch.OutOfMemoryError`, and the text does not contain "out of memory". Code that catches OOM to retry with a smaller
+batch does not see it: `except torch.OutOfMemoryError`, accelerate `find_executable_batch_size` and HF Trainer
+`auto_find_batch_size` (both check for `torch.OutOfMemoryError` or "out of memory" text), Lightning `BatchSizeFinder`.
+
+(b) Allocation is lazy, so `torch.ones(...)` returns at once and the OOM shows at a later sync, sometimes on another
+tensor. A loop that allocates until it gets an error never stops: `overnight/r5/recover.py oom_gradual` ran 15 min
+with 343 failed retries and no Python exception. `oom_silent.py`, 8 x 4 GiB on a 24 GiB core, no sync in the loop:
+```
+alloc 0..7: returned in 0.00s, memory_allocated=4 GiB      (all 8 calls return)
+read 0: raised RuntimeError: NRT Execution error ... operation=neuron::alloc::lazy   (tensor 0 is a good tensor)
+read 1..4: t[-1]=1.0
+read 5..7: raised RuntimeError: ... operation=neuron::copy::neuron_to_cpu
+```
+(c) Each failed allocation subtracts its size from `memory_allocated()`, and the value stays wrong (`oom_type.py counter`):
+```
+after failed alloc of 64 GiB:   allocated=-64.00 GiB
+after failed alloc of 256 GiB:  allocated=-320.00 GiB
+after failed alloc of 4096 GiB: allocated=-4416.00 GiB
+after good 1 GiB alloc:         allocated=-4415.00 GiB reserved=1.00 GiB
+```
+After an OOM, training continues correctly and no device memory leaks (`oom_leak2.py`: same usable size as a fresh
+process).
+
+Root cause, (a): `csrc/core/OperationExecutionEngine.cpp` `ScheduleAllocOperation` throws
+`ExecutionRuntimeException(..., NRT_RESOURCE)`, and the Python side gets a generic RuntimeError. (b) is the lazy
+allocator design (`TryDeferAlloc`). (c) is not checked in the allocator; the failed-allocation path probably runs the
+free-side counter update.
+
+Possible fix: map `NRT_RESOURCE` from an allocation to `torch.OutOfMemoryError` with text that starts with
+"Neuron out of memory" (CUDA uses "CUDA out of memory"). Do not change the allocated counter when the allocation fails.
+
+Known? No. `docs/` has no text on OOM behavior.
+
+### 19. A tensor with 2^32 or more elements fails to fill, with a misleading "Invalid NEFF" error
+
+`torch.ones`, `torch.zeros` and `fill_` fail for a tensor with 2^32 or more elements, for every dtype checked (int8,
+bf16, fp32). 2^32 - 4096 elements work. The memory is available: 5 x 4 GiB tensors work, but one 16 GiB fp32 tensor
+fails. (`overnight/r5/numel32.py`)
+```
+RES bfloat16 n=2**32-4096 ones: ok first=1.0 last=1.0
+RES bfloat16 n=2**32 ones: FAIL NRT Execution error ... operation=aten::ones error message="NRT EXECUTION FAILED: Failed to load model, Invalid NEFF, instruction, or input"
+RES bfloat16 n=2**32 empty_fill / zeros_add, int8 n=2**32, bfloat16 n=3*2**31: FAIL (same)
+```
+Impact is low on this instance (24 GiB per logical core), but a flat buffer of 4.3e9 bf16 elements (8.6 GB) is
+possible, and the error does not say what is wrong. Tensors between 2^31 and 2^32 elements work (round 5).
+Root cause not found; probably a 32-bit size in the fill kernel or in the NEFF it makes. Possible fix: split the fill,
+or raise a clear error for numel >= 2^32.
+
+Known? No.
+
+### 20. A compile error is raised a second time by the next unrelated op
+
+When a compiled graph fails to compile, the compiled call raises (as expected). The next eager op then raises the same
+"Compilation failed for cache key ..." error, and its result is lost. Later ops work. `NEURON_LAUNCH_BLOCKING=1` gives
+the same result. Code that catches a compile failure and falls back to eager fails on the first eager op.
+(`overnight/r5/sticky.py`)
+```
+RES compile error raised: RuntimeError
+RES op 0: FAIL Compilation failed for cache key '4ab961bb...'    <- torch.full(...) * 2, unrelated
+RES op 1: ok [2.0, 2.0, 2.0, 2.0]
+```
+Probable root cause: the failed operation reports its error to the caller and also stashes it on the stream
+(`csrc/core/streams/StreamImpl.cpp` `HandleErrorWithExceptionPtr` -> `StashException`). The first report does not
+clear the stash, so the next `Synchronize()` (line 162) throws it again. Possible fix: clear the stashed exception when
+the same error is already given to the caller.
+
+Known? No.
+
 ## Performance: documented CPU fallbacks that cost the most in common training (eager)
 
 `overnight/perf_fallback.py`, ms per SGD train step after warmup, batch 32x3x64x64 CNN (3 conv blocks) and a 512-1024-512 MLP:
@@ -673,4 +779,57 @@ memory is safe if the source changes right after; from pinned memory the later c
 non_blocking D2H read before a sync is wrong, both the same contract as CUDA. DataLoader `pin_memory=True` works.
 `torch._grouped_mm` fp32 fwd/bwd rel ~3e-7, bf16 ~1.6e-3 (no fp32 downcast, unlike finding 16).
 
+Forward-only OpInfo sweep (`overnight/fwd_sweep.py`, first 3 samples, exact match for ints/bools): int64 364 OK / 5
+flagged, bool 299 OK / 3, fp32 non-autograd ops 93 OK / 0. Flagged items, all low impact: (a) bf16 `rsqrt` returns the
+bf16 max 3.39e38 instead of inf for 0 and instead of the right value for inputs below ~1e-29 (`rsqrt(1e-30)` should be
+1.0e15); fp32 and fp16 are right, normal RMSNorm eps values are not affected; (b) int64 `addmv` with fractional
+`beta=0.2, alpha=0.6` uses the float scalars, CPU truncates them to 0 first; (c) `__rpow__` int64 overflow (packed int64,
+documented); the rest are lowering errors on edge samples.
+
 ## Notes
+
+Round 5 (third session, `overnight/r5/`): no new finding.
+- Eager lowering cache key (`cache_key.py`, `cache_key_bwd.py`): 36 forward and 30 backward ops called several times in
+  one process with the same shapes but other scalar args (alpha, slope, eps, dim, p, beta, delta, approximate,
+  rounding_mode, label_smoothing), other strides or other dtype: all match CPU, so the per-shape cache keys these.
+- Compiled graph reuse (`compile_stale.py`): Python constant change, module attribute change, layer frozen mid-training,
+  `.data` swap and in-place param copy, buffer reassign, dtype and stride switch: all recompile or reuse correctly.
+  The persistent NEFF key covers HLO bytes, NEURON_CC_FLAGS, opt level, LNC, platform and compiler version
+  (`csrc/core/cache/CompilationCacheKey.cpp`).
+- Tensors with more than 2^31 elements (`probe_r5.py big_*`): 2^31+4096 bf16 vector writes/reads at both ends and at
+  2^31-1; Embedding 140000x16384 bf16 (2.29e9 elements) forward rows and backward with duplicate rows are right.
+- Optimizer step in `register_post_accumulate_grad_hook`, MoE top-2 routing (argsort, bincount, index_add, aux loss)
+  forward and backward, bincount/unique/bucketize/searchsorted/histc/nonzero/masked_select/one_hot, tied
+  embedding/LM head, full backward hooks + grad hooks + zero-stride grad_output + retain_graph, write-after-read
+  ordering (H2D copy, fill_, `.data` swap, view write right after a pending read), Neuron Stream/Event/wait_stream.
+- Not reported: tied embedding fp32 loss near 0 has 8e-4 relative error (1e-6 absolute, CPU 1.5e-7), which is fp32
+  cancellation in `logsumexp - z_y` at logit ~59 (`tied3.py`); a side-stream read with no `wait_stream` gave a wrong
+  value once in 4 runs, which is a race by the CUDA stream contract.
+- Error recovery (`r5/recover.py`), training is correct after: OOM from one huge allocation, OOM during a large forward,
+  an exception in a gradient hook (retry gives the right grad), a Python exception inside a compiled function (retry
+  works), and the out-of-bounds index errors of finding 17. `lerp_` into `b.t()[1:4]`, which failed to lower in the
+  views probe, now runs.
+
+Distributed round 4 (`overnight/dist4/`, torchrun 4 ranks, CPU reference): no new numbered finding.
+- Correct: all_reduce SUM/MAX/MIN/AVG for fp32/bf16/fp16/int32/int64/int8/uint8/bool; reduce_scatter_tensor
+  SUM/AVG/MAX/MIN fp32/bf16; collectives on transposed and stride-2 views with no storage offset, broadcast from src=2,
+  all_gather into `unbind` views, reduce_scatter into a row slice; 8 async all_reduce waited in reverse order,
+  `get_future`, interleaved async all_gather + reduce_scatter; disjoint and partial subgroups, subgroup broadcast with a
+  global src; destroy + re-init of the process group; DDP basic, `gradient_as_bucket_view`, tiny buckets, `static_graph`,
+  compiled DDP, AdamW, `find_unused_parameters` with alternating branches, `no_sync` grad accumulation, BN buffer
+  broadcast; FSDP2 with frozen params, tied embedding/head, `set_requires_gradient_sync(False)` accumulation,
+  `reshard_after_forward=2`, explicit `unshard()`/`reshard()`, no_grad eval, sharded and full optimizer state dict
+  round trip; HSDP 2x2 with clip_grad_norm; DCP `async_save` (params changed right after save, load gives the old
+  values); MoE expert parallel with `all_to_all_single_autograd` and uneven splits (fwd and grads 1e-7);
+  `context_parallel` causal SDPA over 4 ranks (proj grad 1.9e-6); 31 DTensor ops x Shard(0)/Shard(1)/Replicate.
+- Not reported, low: all_reduce with BAND/BOR/BXOR fails to lower for every int dtype (PRODUCT is in an earlier note);
+  all_reduce with a different shape or dtype on one rank raises "Invalid NEFF" (no hang, but the message does not say
+  what is wrong).
+- Same root cause as the known BatchNorm issue: `SyncBatchNorm` running stats stay at 0/1. Its
+  `aten::batch_norm_gather_stats_with_counts` lowering (`python_ops/torch_mlir/ops/normalization.py`) says in its
+  docstring that running stats are not updated, so a BatchNorm fix must cover this op too.
+- Upstream, not Neuron: DTensor `F.mse_loss` / `F.smooth_l1_loss` with `reduction="mean"` on Shard(0)/Shard(1)
+  inputs give grads W times too large (forward right; `l1_loss` and `((a-b)**2).mean()` right); same on CPU gloo
+  (`dist4/dt2_cpu.py`). FSDP2 `set_state_dict(..., broadcast_from_rank0=True)` with a full CPU state dict hangs on
+  rank 0, also on CPU gloo (`dist4/osd3.py`). `clip_grad_norm_` on TP+FSDP 2D params on two meshes fails in
+  `aten.stack` (upstream limit; torchtitan has its own clip).

@@ -1,0 +1,12 @@
+2026-Nov-02 10:26:25.434069 476357:476357  WARN   NRT:nrt_init                                dma-buf is not supported due to incompatible Libfabric. Falling back to p2p for efa memory registration.  (this log repeats as INFO level)
+/home/ec2-user/torch-neuronx/torch_neuronx/nki_kernel.py:85: UserWarning: NKI_ENABLE_TRACE_CACHE=1: the NKI kernel compile cache is persisted across processes. The caching process may not capture all kernel environment dependencies or non-argument values and can yield stale cache hits; see the torch-neuronx environment variables documentation for details. Set NKI_ENABLE_TRACE_CACHE=0 to disable.
+  _warn_trace_cache_once()
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/testing/_internal/opinfo/core.py:1263: UserWarning: Using torch.cross without specifying the dim arg is deprecated.
+Please either pass the dim explicitly or simply use torch.linalg.cross.
+The default value of dim will change to agree with that of linalg.cross in a future release. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/native/Cross.cpp:63.)
+  return self.op(*args, **kwargs)
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/functional.py:680: UserWarning: A window was not provided. A rectangular window will be applied,which is known to cause spectral leakage. Other windows such as torch.hann_window or torch.hamming_window are recommended to reduce spectral leakage.To suppress this warning and use a rectangular window, explicitly set `window=torch.ones(n_fft, device=<device>)`. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/native/SpectralOps.cpp:854.)
+  return _VF.stft(  # type: ignore[attr-defined]
+/home/ec2-user/torch-neuronx/.venv/lib/python3.14/site-packages/torch/functional.py:680: UserWarning: stft with return_complex=False is deprecated. In a future pytorch release, stft will return complex tensors for all inputs, and return_complex=False will raise an error.
+Note: you can still call torch.view_as_real on the complex output to recover the old return format. (Triggered internally at /__w/pytorch/pytorch/aten/src/ATen/native/SpectralOps.cpp:893.)
+  return _VF.stft(  # type: ignore[attr-defined]
