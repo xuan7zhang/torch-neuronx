@@ -27,13 +27,17 @@ A fourth session (2026-11-03 07:48 to 17:48 UTC, distributed) adds findings from
 | 16 | fp32 SDPA with L % 128 == 0 runs at bf16 precision (NKI flash path) | silent precision loss | no |
 | 17 | `nll_loss` / `gather` with an out-of-range target or index return 0, no error | silent wrong loss/grads | no (fix tested) |
 | 18 | OOM is a plain `RuntimeError`, reported async; `memory_allocated` goes negative | error type, wrong counter | no |
-| 19 | A tensor with 2^32 or more elements fails to fill ("Invalid NEFF") | error, poor message | no |
+| 19 | Large tensors: elementwise ops (`full`, `mul`, `add_`) on 2^31+ elements fail with an unrecoverable DMA error that breaks the process; fills fail at 2^32+ ("Invalid NEFF") | error, process unusable | no |
 | 20 | A compile error is raised again by the next unrelated op | error reported twice | no |
 | 21 | Collectives compute int32/int64/fp64 in fp32: ints wrong above 2^24 (broadcast, scatter, all_reduce SUM/MAX/AVG, reduce_scatter), int64 loses the high word, fp64 overflows to inf | silent corruption | no (fix tested in part) |
 | 22 | DTensor `cross_entropy` (`loss_parallel`) drops `label_smoothing` with no error | silent wrong loss | code note only |
 | 23 | Process-group `timeout` is detected by the watchdog but not enforced (a stalled peer gives a hang); `work.wait(timeout=timedelta)` raises TypeError | hang, API | no |
 | 24 | Object collectives fail when the object holds a Neuron tensor (`all_gather_object`, `broadcast_object_list`) | error | no |
 | 25 | DDP comm hook that makes a tensor and uses it in the future callback fails ("Tensor not bound: lazy alloc"); breaks PowerSGD with error feedback (default) | error | no |
+| 26 | In one process, `t.to("neuron:1")` from `neuron:0` returns a tensor still on `neuron:0` (silent); `copy_` across cores raises | silent wrong device | no |
+| 27 | No compute/communication overlap: async all_reduce, a side-stream all_reduce, and a compiled graph with independent matmuls + all_reduce all take compute + comm time | performance | not documented |
+| 28 | Uneven `all_to_all_single` (MoE expert parallel) recompiles its NKI kernel for each new max row count: 1.1-3 s per call when routing changes, vs 1.5 ms when shapes repeat | performance | design documented, cost not |
+| 29 | `init_process_group(..., device_id=dev)` makes every 2-D `init_device_mesh` fail ("backend does not support splitting"); breaks HF `tp_plan="auto"` | error | no |
 
 All "fix tested" items were tested in process (monkeypatch) or with a reverted edit. No file in the repo is changed.
 
@@ -591,7 +595,29 @@ Possible fix: map `NRT_RESOURCE` from an allocation to `torch.OutOfMemoryError` 
 
 Known? No. `docs/` has no text on OOM behavior.
 
-### 19. A tensor with 2^32 or more elements fails to fill, with a misleading "Invalid NEFF" error
+### 19. Large tensors: elementwise ops fail at 2^31 elements (unrecoverable DMA error), fills fail at 2^32 elements
+
+Update from the distributed session (`overnight/dist5/full_big.py`, one process): `torch.full`, `x * 2` and `x.add_(1)`
+on a tensor with 2^31 or more elements (bf16 or int8) fail with NRT status 1203 "A DMA engine encountered an
+unrecoverable error" (the runtime prints AXI timeout/response errors for every DMA queue). After that, every later op
+in the process fails, so the job must restart. 2^31 - 4096 elements work. `torch.zeros`, `torch.ones` and `fill_` work at
+2^31 + 4096 (they use another kernel), and fail later at 2^32 (below).
+```
+n=2**31+4096 zeros bfloat16:     ok x[0]=0.0 x[-1]=0.0 | next op ok
+n=2**31+4096 ones / fill_ bf16:  ok                    | next op ok
+n=2**31-4096 full bfloat16:      ok                    | next op ok
+n=2**31      full bfloat16:      ERR ... NRT status: 1203, A DMA engine encountered an unrecoverable error | next op ERR
+n=2**31+4096 mul / add_ bf16:    ERR ... status 1203 | next op ERR
+n=2**31+4096 full int8:          ERR ... status 1203 | next op ERR
+```
+Collectives are not affected: `all_reduce`, `reduce_scatter_tensor` (input) and `all_gather_into_tensor` (output) of
+2^31 + 4096 bf16 elements are correct when the input is made with `empty` + `fill_` (`big_numel_coll.py`); with
+`torch.full` the input creation fails first. Where it can happen: a full (unsharded) parameter of 2^31+ elements, for
+example a 256k x 8192 embedding (2.1e9) that FSDP unshards for the forward, or an optimizer update on such a tensor.
+Probable root cause: a signed 32-bit element offset or DMA descriptor size in the elementwise kernels. Possible fix:
+split the op into chunks below 2^31 elements, or raise a clear error before the launch.
+
+Original finding (2^32):
 
 `torch.ones`, `torch.zeros` and `fill_` fail for a tensor with 2^32 or more elements, for every dtype checked (int8,
 bf16, fp32). 2^32 - 4096 elements work. The memory is available: 5 x 4 GiB tensors work, but one 16 GiB fp32 tensor
@@ -795,6 +821,112 @@ future (`csrc/distributed/NeuronWork.cpp` `markCompleted`), dispatches `aten::su
 (`csrc/core/KernelExecution.h:290`) then finds no NRT tensor. Possible fix: order the pending allocations of a tensor
 before any op that reads it from another thread or stream (for example, flush or wait for pending `kAlloc` ops of the
 inputs in the callback path, or bind the allocation eagerly when it is made off the main thread).
+
+Known? No.
+
+### 26. In one process, a Neuron-to-Neuron `.to()` across cores keeps the source core (silent wrong device)
+
+A single process sees all 4 logical cores (`torch.neuron.device_count() == 4`), and CPU -> `neuron:1` and factories on
+`neuron:1` work. But a copy from one core to another returns a tensor on the source core, with no error. A dtype change
+in the same call does not help. `copy_` into a tensor on the other core raises. A CPU bounce works.
+(`overnight/dist5`, inline script; output)
+```
+cpu -> neuron:1             neuron:1
+neuron:0 .to('neuron:1')    neuron:0        <- expected neuron:1
+neuron:0 .to(device(neuron,1)) / .to('neuron:1', copy=True) / .to('neuron:1', bfloat16): neuron:0
+neuron:1 .to('neuron:0')    neuron:1
+neuron:1 .to('neuron:2')    neuron:1
+empty(4, device='neuron:1').copy_(t0): RuntimeError: Inconsistent device IDs found in kernel outputs: expected device 0 but found device 1
+neuron:1 .cpu().to('neuron:2')  neuron:2
+2-layer model split over neuron:0 / neuron:1: RuntimeError: Inconsistent device IDs found in kernel inputs
+```
+Impact: single-process model parallel across cores does not work, for example a naive pipeline split, HF
+`device_map="auto"` / accelerate big-model loading over several cores, or moving a tensor to another core for a
+side job. Code that checks `t.device` after `.to()` sees the wrong core and fails later.
+
+Root cause: `csrc/core/dispatch/NeuronDispatcher.cpp` `DispatchToCopyImpl`, Neuron -> Neuron branch on the default
+stream. With the same dtype, Phase 1 does `converted = self_tensor` ("No dtype change (reached only with a real layout
+change)"), and the target device index is not used after that. The comment is wrong for a change of core. Only the
+host-CC non-default-stream branch and the CPU bounce use `target_device`. The Python `ToCopyNeuronImpl` has a correct
+Neuron -> Neuron branch (`write_neuron_to_neuron` into a tensor on `target_device`), but it is not reached.
+
+Possible fix: when `self.device().index() != target_device.index()`, allocate the output on `target_device` and copy
+(`copy_neuron_to_neuron`, or the CPU bounce if a direct core-to-core copy is not possible), before the dtype/layout
+phases. Make `copy_` across cores take the same path.
+
+Known? No. `docs/AI-distributed.md` covers multi-process training only.
+
+### 27. Collectives do not overlap with compute (performance)
+
+The usual way to hide communication (an async collective, or a collective on a side stream, while independent compute
+runs; FSDP prefetch and DDP bucketing rely on this) gives no gain: the time is the sum of compute and communication.
+In a compiled graph with an independent matmul chain and an all_reduce the gain is 0.8 ms of 8 ms.
+(`overnight/dist5/overlap.py`, `overlap_compile.py`, 4 ranks, bf16 4096x4096 matmul x20, fp32 512 MiB all_reduce)
+```
+eager:    matmul x20 23.2 ms, all_reduce 7.8 ms, async_op overlap 31.0 ms, side-stream overlap 31.6 ms, serial sum 31.0 ms
+compiled: matmul chain 23.5 ms, all_reduce 8.0 ms, both in one graph 30.7 ms, serial sum 31.5 ms
+```
+Impact: in data-parallel and FSDP training every gradient reduce-scatter / all-reduce and every parameter all-gather
+adds its full time to the step. At the measured bus bandwidth (about 104 GB/s on this instance) that is about 15 ms per
+GB of fp32 gradients per step for DDP.
+
+Probable cause: eager collectives run as their own NEFF (`NeuronBackend::SubmitInNeffCollective`) in the same execution
+queue as the compute NEFFs of the core, so a Neuron stream does not give concurrent execution. This may be a runtime or
+hardware limit, but `docs/` does not say that compute and collectives serialize.
+
+Known? Not documented.
+
+### 28. Uneven `all_to_all_single` recompiles for each new row capacity: 1-3 s per call in MoE training (performance)
+
+MoE expert parallel sends a different number of tokens to each expert every step. On Neuron each call with a new
+combination of total rows compiles a new kernel, which takes 1.1-3.0 s. When the shapes repeat, the call takes 1.5 ms
+(an even all_to_all of the same size takes 0.5 ms). (`overnight/dist5/a2a_latency.py`, `a2a_latency2.py`, 4 ranks,
+hidden 512, 1-64 rows per peer)
+```
+new random splits each step (ms): [2992.8, 2891.9, 2651.8, 2705.1, 2710.2, 2693.0, 2703.1, 1432.6, 1115.0, 2700.0, ...]
+same splits x5 (ms):               [1511.6, 2.0, 1.8, 1.6, 1.6]
+different splits, same send and recv totals (ms): [1.6, 1.5, 1.6, 1.6]
+even all_to_all, warm: 0.52 ms
+```
+With top-k routing, the number of tokens that a rank receives changes every step, so a MoE run pays this compile on
+most steps until every capacity value has been seen. Each MoE layer has two all_to_all calls in forward and two in
+backward. The persistent cache helps only for capacities seen in an earlier run.
+
+Root cause: `torch_neuronx/distributed/ops/all_to_all_v.py` (documented in `docs/AI-all-to-all.md`, "NKI a2a-v buffers
+and metadata") takes the MAX of send and receive rows over ranks and rounds it up to a multiple of EP (4 here). That
+value sets the kernel shapes, so there is one compile for every 4 rows of capacity.
+
+Possible fix: round the capacities up to a coarse bucket (for example the next power of two, or a configurable
+multiple), so that the number of kernels is about log2(world_size * tokens). The padding cost is at most 2x of the
+buffer. Users can avoid it today with a fixed expert capacity (pad/drop tokens to a constant count).
+
+Known? The capacity rule is documented; its compile cost per new capacity is not.
+
+### 29. `init_process_group(device_id=...)` breaks 2-D device meshes; HF `from_pretrained(..., tp_plan="auto")` fails
+
+PyTorch recommends `init_process_group(backend, device_id=torch.device(...))` (eager communicator init); torchtitan and
+HF transformers pass it. On Neuron, after that call every multi-dimensional `init_device_mesh` fails. A 1-D mesh and
+`new_group` still work. (`overnight/dist5/device_id_mesh.py`, 4 ranks)
+```
+init_process_group(plain):     {'(4,)': 'ok [4.0, 4.0]', '(2, 2)': 'ok [2.0, 2.0]', 'new_group': 'ok'}
+init_process_group(device_id): {'(4,)': 'ok [4.0, 4.0]',
+                                '(2, 2)': 'ERR RuntimeError: No backend for the parent process group or its backend does not support splitting',
+                                'new_group': 'ok'}
+```
+Real use (`overnight/dist5/hf_tp.py`, transformers 5.22.1, tiny Llama saved with `save_pretrained`, torchrun 4 ranks):
+`LlamaForCausalLM.from_pretrained(path, tp_plan="auto")` raises the same error. transformers maps the `neuron` device to the
+`neuron` backend and calls `init_process_group(..., device_id=...)`, then builds its mesh.
+
+Root cause: `torch/distributed/device_mesh.py` (`_init_one_process_group` path) uses `split_group` when the default group
+has a `bound_device_id` and an accelerator is present. It does not check that the backend supports splitting.
+`NeuronBackend` does not implement `split` (`supportsSplitting` is false), so `split_group` raises.
+
+Possible fix: implement `Backend::split` in `NeuronBackend` (a new backend over the subset of ranks, as `new_group` does),
+or make the torch_neuronx DeviceMesh hook (`torch_neuronx/distributed/mesh_registry.py`, which already patches
+`DeviceMesh._init_process_groups`) use `new_group` for Neuron when the backend cannot split. Workaround: do not pass
+`device_id`.
+With the process group created first without `device_id`, `from_pretrained(..., tp_plan="auto")` gets past the mesh
+and then needs `accelerate`, which is not installed in this venv, so the HF TP forward was not tested further.
 
 Known? No.
 
@@ -1073,3 +1205,22 @@ Distributed round 5 (`overnight/dist5/`, third distributed session): checked and
   With `cpu:gloo,neuron:neuron`, re-init after destroy fails in gloo (same as CPU gloo). FSDP1 `MixedPrecision` bf16
   gives 0.225 rel param error after 3 AdamW steps on Neuron and on CPU gloo alike. DCP stores one copy of a plain
   (non-DTensor) tensor that differs per rank (upstream semantics).
+- Batch I-J: `torch.multiprocessing.spawn` launch (4 procs, each on its own core) works; a fork after the Neuron runtime
+  starts raises a clear "Neuron runtime should not be used after fork(); use spawn or num_workers=0" in the child (parent
+  keeps working); DataLoader `num_workers=2` after Neuron init works. Collectives on 2^31 + 4096 bf16 elements
+  (all_reduce, reduce_scatter_tensor input, all_gather_into_tensor output) are correct. GradScaler with one rank
+  producing inf: DDP + fp16 autocast and FSDP2 + `amp.GradScaler("neuron")` / `ShardedGradScaler(device="neuron")` skip
+  the step on every rank and halve the scale. Not reported (upstream): `ShardedGradScaler()` with its default
+  `device="cuda"` disables itself on a host without CUDA (scale 1.0, the inf step is applied and params become inf), so
+  pass `device="neuron"`; FSDP2 `set_gradient_divide_factor(1.0)` and `set_force_sum_reduction_for_comms(True)` still
+  give mean-reduced grads, same on CPU gloo. `Work.is_completed()` is False right after `wait()` (stream semantics, as NCCL).
+- Collective first-call cost (`small_latency.py`): each new shape of an eager collective compiles a NEFF, about 400-460 ms
+  per shape cold and 34 ms from the persistent cache; after that a small all_reduce takes 0.13-0.18 ms (same tensor,
+  distinct tensors, row views). Expected for a NEFF-per-shape design; noted for warm-up time with many parameter shapes.
+- MoE expert parallel end to end (`moe_ep.py`, 4 experts on 4 ranks, top-1 routing, uneven `all_to_all_single_autograd`
+  dispatch and combine, aux loss, 30 AdamW steps): loss equal to the CPU reference at every step (max diff 1.2e-7),
+  expert params within 2.2e-6.
+- DDP comm hooks: `fp16_compress_hook`, `quantization_pertensor_hook`, FSDP1 `LowPrecisionState` fp16 hook run correctly.
+  `quantization_perchannel_hook` and `batched_powerSGD_hook` fail on CPU gloo too (upstream).
+- DCP resharding across layouts (`dcp_reshard.py`): save TP=4 -> load FSDP=4, FSDP=4 -> TP2 x FSDP2, TP2 x FSDP2 -> plain
+  model, FSDP=4 -> TP=4: params bit-exact, an int64 buffer [20000001, 3000000007] exact, outputs equal (1e-7).

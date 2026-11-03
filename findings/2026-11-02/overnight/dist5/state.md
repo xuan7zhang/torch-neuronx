@@ -12,3 +12,9 @@
 - 09:01 batch G running; elastic restart fails also on CPU gloo (upstream, gloo connectFullMesh on restart). destroy_with_pending: destroy returns 1.3s, values right, mixed-backend reinit fails in gloo (as CPU); other ranks hang (waiting for run.sh timeout). Need: rerun elastic_min neuron/neuron after batch G.
 - 09:17 batch G/H noted in report. Compiled uneven a2a: documented eager-only. Running run_scale2.sh (tp_fsdp_compile, fsdp_bf16_compile, ddp_compile, fsdp at S=120 + ref dp4 s120).
 - 09:28 scale2 compile runs all track CPU (S=120). Finding 23 extended: NeuronWork.wait takes int ms only (timedelta -> TypeError); wait(10000) raises after 10 s.
+- 09:33 Finding 26: single-process neuron:0 -> neuron:1 .to() silently stays on neuron:0 (DispatchToCopyImpl same-dtype passthrough ignores target index). Next: mp.spawn / fork-after-init.
+- 09:44 spawn/fork/DataLoader OK. Big numel: all_gather out >2^31 OK; elementwise full/mul/add_ at >=2^31 elements -> DMA unrecoverable error, process unusable -> finding 19 widened.
+- 09:49 batch I/J noted. ShardedGradScaler default device=cuda -> disabled (upstream gotcha). divide factor same on gloo.
+- 09:57 hooks scope: fp16/quant_per_tensor/FSDP1 fp16 hooks OK; per_channel & batched_powerSGD fail on CPU too. MoE EP 30 steps exact. Finding 27: no compute/comm overlap (eager async, side stream, compiled).
+- 10:03 Finding 28: uneven a2a recompiles per capacity (1-3 s). Collective first-call per shape 400 ms cold/34 ms cached noted.
+- 10:09 DCP cross-layout reshard exact. Finding 29: device_id in init_process_group -> 2D init_device_mesh fails (split_group unsupported); breaks HF tp_plan auto. Next: HF tp_plan without device_id? backup.
