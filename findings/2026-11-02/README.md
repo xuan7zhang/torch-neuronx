@@ -5,6 +5,7 @@ Status: done. Active work ran 08:22-12:10 UTC. At about 12:10 the memory/mixed-d
 (`overnight/mem_mixed.py`) was killed (exit 137) and the loop did not resume, so 12:10-17:22 had no work and that
 probe has no results. A second session started at 17:25 UTC to continue; its results are added below and in the table.
 A third session (2026-11-02 21:00 to 2026-11-03 00:30 UTC) added findings 17-20 (error recovery round).
+A fourth session (2026-11-03 07:48 to 17:48 UTC, distributed) adds findings from 21 (`overnight/dist5/`).
 
 | # | Finding | Kind | Known? |
 |---|---|---|---|
@@ -28,6 +29,10 @@ A third session (2026-11-02 21:00 to 2026-11-03 00:30 UTC) added findings 17-20 
 | 18 | OOM is a plain `RuntimeError`, reported async; `memory_allocated` goes negative | error type, wrong counter | no |
 | 19 | A tensor with 2^32 or more elements fails to fill ("Invalid NEFF") | error, poor message | no |
 | 20 | A compile error is raised again by the next unrelated op | error reported twice | no |
+| 21 | Integer collectives are wrong above 2^24: broadcast/scatter/all_reduce run as fp32 sums (int32 and int64); int64 also loses the high word | silent corruption | no (fix tested in part) |
+| 22 | DTensor `cross_entropy` (`loss_parallel`) drops `label_smoothing` with no error | silent wrong loss | code note only |
+| 23 | Process-group `timeout` is detected by the watchdog but not enforced: a stalled peer gives a hang, not an error | hang | no |
+| 24 | Object collectives fail when the object holds a Neuron tensor (`all_gather_object`, `broadcast_object_list`) | error | no |
 
 All "fix tested" items were tested in process (monkeypatch) or with a reverted edit. No file in the repo is changed.
 
@@ -501,6 +506,12 @@ Side note: the per-shape lowering cache ignores `TORCH_NEURONX_ENABLE_NKI_SDPA`.
 keeps the non-NKI result in later processes with the flag at 1 (L=384 above), so the env var does not act for cached
 shapes.
 
+Training impact (added in the distributed session, `overnight/dist5/llama_scale.py`): an 8-layer Llama-style LM
+(GQA, RoPE, SwiGLU) on TP+FSDP2 2x2, 300 AdamW steps, fp32. With S=128 the loss leaves the CPU curve at step 11 and
+ends at 5.81 vs 4.63 on CPU; step-0 q/k weight grads are off by 5e-3 with or without TP (`tp_grad_check.py`). With
+S=120 (not a multiple of 128) the curves are equal to step 29 and end at 2.76 vs 2.70. FSDP2-only and DDP runs at
+S=128 stayed close to CPU (2.05 vs 2.04), so the size of the effect depends on the run.
+
 ### 17. `nll_loss` and `gather` with an out-of-range target or index return 0 (silent wrong loss and grads)
 
 `F.nll_loss(log_probs, target)` with a target `>= C` or `< 0` (and not `ignore_index`) gives no error. Each bad row adds 0
@@ -602,6 +613,119 @@ clear the stash, so the next `Synchronize()` (line 162) throws it again. Possibl
 the same error is already given to the caller.
 
 Known? No.
+
+### 21. Integer collectives give wrong values: above 2^24 for int32 and int64 (fp32 math), and above 2^31 for int64 (silent)
+
+Two separate problems. (a) `broadcast`, `scatter` and `all_reduce` on int32 or int64 tensors are exact only up to 2^24
+(16,777,216), because the values go through an fp32 sum. `all_gather` is exact. `broadcast` is a zero + all_reduce
+SUM (`csrc/distributed/NeuronBackend.cpp` around line 1125, "Zero non-root ranks, then allreduce SUM"), so it has the
+same limit. `distribute_tensor` and `full_tensor` of an integer DTensor use these collectives too.
+(`overnight/dist5/int_precision.py`, 4 ranks, `arange(8) + base`)
+```
+int32 base 1000:          broadcast True,  all_gather True, distribute_full True,  scatter True,  all_reduce True
+int32 base 16777216:      broadcast False, all_gather True, distribute_full False, scatter False, all_reduce False
+                          distribute_tensor(...).full_tensor()[:3] = [16777216, 16777216, 16777218]
+int32 base 100000000:     all False except all_gather;  full_tensor()[:3] = [100000000, 100000000, 100000000]
+int64: same results as int32 for these bases
+int64 DTensor arange(8)+3e9, Shard(0): every element of every local shard and of full_tensor() = -1294967296
+```
+`reduce_scatter_tensor` on int32/int64 has the same limit; `all_to_all_single` is exact (`int_more.py`), so MoE
+routing indices are not affected. Because `broadcast` is a sum, a float broadcast is not bit exact: `-0.0` arrives as
+`+0.0` (fp32 and fp16); denormals are kept.
+(b) int64 values outside the int32 range are cast to int32 before any collective, so they saturate (sum) or lose the
+high 32 bits (all_gather), described below.
+
+Fix for (a), tested in process (`overnight/dist5/int_fix_proto.py`): implement integer `broadcast`/`scatter` as data
+movement (all_gather of the int32 view, keep the src slice): exact for int32 and int64 at 2^24, 2e9, 3e9 and -2^40.
+For integer SUM, reduce 16-bit limbs (each limb sum < W * 2^16 < 2^24) and recombine: exact for int32 at 2^24 and 2e9.
+The int64 version of the limb sum must work on the int32 words, because device int64 shifts are limited (packed int64).
+
+Typical uses that break: token counts summed over ranks for loss normalization (more than 16.7M tokens per step on
+large batches), global sample or token counters, seeds broadcast from rank 0 (`torch.randint(0, 2**31)`), integer
+DTensors (sharded token buffers, routing indices), checkpoint step counters.
+
+
+Details for (b). On one device an int64 tensor keeps values outside the int32 range (`torch.tensor([3e9, 2**40])` round-trips, `+ 1`
+and `clone` are right). A collective on the same tensor changes the values with no error. This includes the
+data-movement collectives, which do no arithmetic. (`overnight/dist5/probe_dist5.py int64_and_precision`, 4 ranks)
+```
+all_reduce SUM [3e9+r, -(3e9+r), 2**40+r, 5]: got [-2147483648, 2147483647, 6, 20]
+                                              expected [12000000006, -12000000006, 4398046511110, 20]
+all_reduce MAX 3e9+r:            got -1294967296      expected 3000000003
+all_gather_into_tensor 3e9+r:    got [-1294967296, -1294967295, -1294967294, -1294967293]
+broadcast 3000000007:            got -1294967296
+```
+Typical uses that break: global token or sample counters (`tokens_seen` passes 2^31 early in LLM training), seeds and
+RNG offsets broadcast from rank 0, int64 ids gathered for evaluation, and step counters in checkpoints.
+
+Root cause: `csrc/core/dispatch/DispatchUtils.cpp` `DowncastTensorList` (called by `NeuronBackend::SubmitInNeffCollective`)
+always casts int64 to int32 before a collective ("collectives are handled in int32"), and casts the output back.
+
+Workaround and fix (tested, `overnight/dist5/int64_fix.py`): for data-movement collectives (all_gather, broadcast,
+all_to_all, scatter, gather, send/recv), reinterpret the int64 data as int32 pairs (`t.view(torch.int32)`) instead of a
+value cast. With this, all_gather and broadcast of 3e9 and -(2^40) are exact. For SUM/MAX/MIN, check the range and
+raise (or fall back) when a value does not fit in int32, at least under `TORCH_NEURONX_PACKED_INT64_CHECK_OVERFLOW=1`.
+
+Known? The packed int64 design (`docs/packed_int64_design.md`) documents truncation for compute ops. It does not say
+that a collective truncates values that the device tensor holds correctly.
+
+### 22. DTensor `cross_entropy` (TP `loss_parallel`) ignores `label_smoothing` (silent wrong loss)
+
+With vocab-sharded logits under `loss_parallel()`, `F.cross_entropy(..., label_smoothing=0.1)` returns the loss without
+smoothing. Upstream PyTorch raises for this case (CPU gloo: `aten.masked_fill_.Scalar got mixed torch.Tensor and
+DTensor`), so on CUDA the user gets an error and on Neuron a wrong loss. (`overnight/dist5/lp_ls.py`)
+```
+cpu ls=0.1 loss 4.62334, cpu ls=0 loss 4.61568, neuron loss_parallel ls=0.1 4.61568
+```
+Root cause: `python_ops/torch_mlir/ops/loss.py`, the DTensor branch of the cross_entropy override, computes
+`log_softmax` + `nll_loss` and never reads `args[5]`. The docstring says "this branch does not forward
+`label_smoothing`", but nothing tells the user at run time.
+
+Possible fix: raise `NotImplementedError` in that branch when `label_smoothing != 0` (same result as upstream). A real
+implementation cannot add a second consumer of `log_softmax`: the upstream `loss_parallel` log_softmax backward
+assumes its only consumer is `nll_loss` (a prototype `(1-e)*nll + e*smooth` gives the right loss but 2.4% wrong grads).
+
+Known? Only the docstring note.
+
+### 23. The process-group `timeout` is detected but not enforced: a stalled rank makes the others hang, not fail
+
+`init_process_group(..., timeout=timedelta(seconds=30))`, rank 3 sleeps 90 s before `all_reduce`. The watchdog on the
+other ranks logs the timeout at 30 s and "Aborting work due to timeout", but their `all_reduce` + sync keeps waiting,
+then returns the correct value at 90 s with no exception. With CPU gloo the same script raises "Timed out waiting
+30000ms" at 30 s. (`overnight/dist5/probe_dist5.py timeout_one_rank_stalls`, `cpu_timeout_one_rank_stalls.log`)
+```
+[rank0] NeuronWork.cpp:159 Watchdog caught collective operation timeout: allreduce (seq=0) ran for 30026 milliseconds
+[rank0] NeuronWork.cpp:274 Aborting work due to timeout
+R0 timeout_one_rank_stalls: {'result': [4.0, 4.0, 4.0, 4.0], 'secs': 90.0}
+```
+So a rank that stays alive but skips a collective (a common deadlock, for example a data-dependent branch) hangs the job
+forever instead of failing after `timeout`. A rank that exits is detected at once (`rank_exit.py`: NRT error in 1 s).
+
+Root cause: `csrc/distributed/NeuronWatchdog.cpp` marks the work as timed out and `NeuronWork::abort` runs, but the
+caller blocks in the device stream sync, which the abort does not cancel. `NeuronWork::wait()` only polls
+`checkTimeout` when `blockingWait_` is set or a wait timeout is passed.
+
+Possible fix: when the watchdog times out a collective, abort the communicator and fail the stream (the NCCL backend
+aborts the process group and raises, `TORCH_NCCL_ASYNC_ERROR_HANDLING`).
+
+Known? No.
+
+### 24. Object collectives fail when the object holds a Neuron tensor (low)
+
+`dist.all_gather_object(objs, {"r": rank, "t": torch.full((2,), float(rank), device=dev)})` raises on every rank, and
+`broadcast_object_list` with a Neuron tensor raises the same way. Objects without device tensors work. On CUDA this
+works: each process sees all GPUs, so the unpickled tensor goes back to `cuda:<sender>`. Typical use: gathering eval
+outputs or metric dicts that hold device tensors (`accelerate.utils.gather_object`, Lightning metric sync).
+(`overnight/dist5/probe_dist5.py mixed_cpu_and_objects`)
+```
+all_gather_object_neuron_tensor:     ERR ValueError: Device index 1 is out of range. Valid range is 0 to 0 for this process
+broadcast_object_list_neuron_tensor: ERR ValueError: Device index 2 is out of range. Valid range is 0 to 0 for this process
+```
+Root cause: each process owns one logical core (`csrc/core/NeuronDevice.cpp`, range check in the device guard), and
+c10d `_tensor_to_object` unpickles the tensor onto the sender's device index.
+Possible fix: when a tensor is restored to a Neuron index that this process does not own, map it to the current device
+(or to CPU), or document that object collectives must hold CPU tensors.
+Known? `docs/torch_api_compatibility.md` lists these as supported (row 73-75) with no note on device tensors.
 
 ## Performance: documented CPU fallbacks that cost the most in common training (eager)
 

@@ -1,0 +1,20 @@
+import os, torch, torch.distributed as dist, torch_neuronx
+r = int(os.environ["RANK"]); W = int(os.environ["WORLD_SIZE"]); torch.neuron.set_device(r); dev = torch.device("neuron", r)
+dist.init_process_group("neuron")
+big = torch.tensor([3_000_000_000 + r, -(2**40) - r], dtype=torch.int64, device=dev)
+o = torch.empty(W * 2, dtype=torch.int64, device=dev)
+dist.all_gather_into_tensor(o, big); torch.neuron.synchronize()
+plain = o.cpu().tolist()
+o2 = torch.empty(W * 2, dtype=torch.int64, device=dev)
+dist.all_gather_into_tensor(o2.view(torch.int32), big.view(torch.int32)); torch.neuron.synchronize()
+viewed = o2.cpu().tolist()
+b = torch.tensor([2**62 + 5], dtype=torch.int64, device=dev) if r == 0 else torch.zeros(1, dtype=torch.int64, device=dev)
+dist.broadcast(b.view(torch.int32), src=0); torch.neuron.synchronize()
+exp = [v for q in range(W) for v in (3_000_000_000 + q, -(2**40) - q)]
+if r == 0:
+    print("RES plain all_gather   ", plain == exp, plain[:4])
+    print("RES via view(int32)    ", viewed == exp, viewed[:4])
+print(f"RES R{r} broadcast via view", b.item() == 2**62 + 5)
+small = torch.tensor([7 + r], dtype=torch.int64, device=dev); dist.all_reduce(small); torch.neuron.synchronize()
+if r == 0: print("RES small int64 sum ok", small.item() == 7 * W + sum(range(W)))
+dist.destroy_process_group()
