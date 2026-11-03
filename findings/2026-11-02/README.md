@@ -10,7 +10,7 @@ A fourth session (2026-11-03 07:48 to 17:48 UTC, distributed) adds findings from
 | # | Finding | Kind | Known? |
 |---|---|---|---|
 | 1 | Eager SDPA with dropout: backward ignores the mask | silent wrong grads | no (fix tested) |
-| 2 | Activation checkpointing + dropout: recompute uses a new mask | silent wrong grads | no (partial fix tested) |
+| 2 | Activation checkpointing + dropout: recompute uses a new mask (also: sharded DTensor dropout repeats one mask per shard) | silent wrong grads | no (partial fix tested) |
 | 3 | Collectives into offset non-contiguous views write shifted data, change the view | silent corruption | no |
 | 4 | Compiled `_foreach_add_/sub_/div_` on same-value operands (compiled SGD nesterov) | silent wrong update | no (fix tested) |
 | 5 | Compiled LM step with `ids[:, 1:]` labels + CE fails to compile | error | compiler part known |
@@ -29,10 +29,11 @@ A fourth session (2026-11-03 07:48 to 17:48 UTC, distributed) adds findings from
 | 18 | OOM is a plain `RuntimeError`, reported async; `memory_allocated` goes negative | error type, wrong counter | no |
 | 19 | A tensor with 2^32 or more elements fails to fill ("Invalid NEFF") | error, poor message | no |
 | 20 | A compile error is raised again by the next unrelated op | error reported twice | no |
-| 21 | Integer collectives are wrong above 2^24: broadcast/scatter/all_reduce run as fp32 sums (int32 and int64); int64 also loses the high word | silent corruption | no (fix tested in part) |
+| 21 | Collectives compute int32/int64/fp64 in fp32: ints wrong above 2^24 (broadcast, scatter, all_reduce SUM/MAX/AVG, reduce_scatter), int64 loses the high word, fp64 overflows to inf | silent corruption | no (fix tested in part) |
 | 22 | DTensor `cross_entropy` (`loss_parallel`) drops `label_smoothing` with no error | silent wrong loss | code note only |
-| 23 | Process-group `timeout` is detected by the watchdog but not enforced: a stalled peer gives a hang, not an error | hang | no |
+| 23 | Process-group `timeout` is detected by the watchdog but not enforced (a stalled peer gives a hang); `work.wait(timeout=timedelta)` raises TypeError | hang, API | no |
 | 24 | Object collectives fail when the object holds a Neuron tensor (`all_gather_object`, `broadcast_object_list`) | error | no |
+| 25 | DDP comm hook that makes a tensor and uses it in the future callback fails ("Tensor not bound: lazy alloc"); breaks PowerSGD with error feedback (default) | error | no |
 
 All "fix tested" items were tested in process (monkeypatch) or with a reverted edit. No file in the repo is changed.
 
@@ -174,6 +175,17 @@ Known? Not in docs or release notes. Related but different xfails: `dynamo_xfail
 `test_checkpoint_with_dropout_caches_correctly` (compile HOP missing),
 `dtensor_xfails_registry.py` `test_deterministic_dropout_1d` (LocalTensor).
 
+
+Second effect of the same root cause (found in the distributed session, `overnight/dist5/probe_dist5f.py
+tp_dropout_replicated`): DTensor dropout on a sharded DTensor uses the same mask on every shard. DTensor enables
+`OffsetBasedRNGTracker` on Neuron, which gives each shard its own offset through `set_rng_state`. Dropout does not read
+that offset, so the shards get equal masks. `rand`, `randn` and `bernoulli` use the offset correctly.
+```
+F.dropout(distribute_tensor(ones(8, 64), mesh, [Shard(1)]), 0.5).full_tensor(): 4 column shards identical (keep 0.438)
+offset 0 vs 128 differ / 128 vs 256 differ / offset 0 twice equal:
+  rand True / True / True;   bernoulli True / True / True;   dropout True / False / False
+```
+Replicated DTensor dropout and TP dropout on a replicated activation are equal on all ranks, as they must be.
 
 ### 3. Collectives into a non-contiguous view with a storage offset write to the wrong place and change the view
 
@@ -614,7 +626,7 @@ the same error is already given to the caller.
 
 Known? No.
 
-### 21. Integer collectives give wrong values: above 2^24 for int32 and int64 (fp32 math), and above 2^31 for int64 (silent)
+### 21. Collectives compute integer and float64 data in fp32: ints are wrong above 2^24, int64 above 2^31 loses the high word, fp64 overflows (silent)
 
 Two separate problems. (a) `broadcast`, `scatter` and `all_reduce` on int32 or int64 tensors are exact only up to 2^24
 (16,777,216), because the values go through an fp32 sum. `all_gather` is exact. `broadcast` is a zero + all_reduce
@@ -632,6 +644,21 @@ int64 DTensor arange(8)+3e9, Shard(0): every element of every local shard and of
 `reduce_scatter_tensor` on int32/int64 has the same limit; `all_to_all_single` is exact (`int_more.py`), so MoE
 routing indices are not affected. Because `broadcast` is a sum, a float broadcast is not bit exact: `-0.0` arrives as
 `+0.0` (fp32 and fp16); denormals are kept.
+MAX and AVG on int32 are also fp32 (`probe_dist5d.py int_reduce_gather_avg`: MAX of 30000000+r over 4 ranks gives
+30000004, expected 30000003). Compiled functional collectives give the same values as eager (`compiled_funcol_int`).
+
+(c) float64: a device tensor keeps float64 exactly, but collectives run in fp32 and cast back
+(`probe_dist5d.py fp64_collectives`, all_reduce SUM over 4 ranks):
+```
+input per rank: [1 + 1e-12*(r+1), 1e300, 123456789.123456789, 1e-310]
+got:      ['4.0', 'inf', '493827168.0', '0.0']
+expected: ['4.000000000010001', '4e+300', '493827156.49382716', '4e-310']
+broadcast exact: False, all_gather exact: False
+```
+float64 is used for metric accumulators (for example sums of losses or counts over an epoch). `DowncastTensorList`
+casts float64 to float32 ("Other dtypes follow IsSupportedDtype as usual (e.g. float64 -> float32)").
+For data-movement collectives the same int32-view fix applies (view float64 as int32 pairs).
+
 (b) int64 values outside the int32 range are cast to int32 before any collective, so they saturate (sum) or lose the
 high 32 bits (all_gather), described below.
 
@@ -705,6 +732,19 @@ Root cause: `csrc/distributed/NeuronWatchdog.cpp` marks the work as timed out an
 caller blocks in the device stream sync, which the abort does not cancel. `NeuronWork::wait()` only polls
 `checkTimeout` when `blockingWait_` is set or a wait timeout is passed.
 
+Related API problem (`overnight/dist5/wait_timeout.py`): `dist.all_reduce(..., async_op=True)` returns a
+`torch_neuronx._C.NeuronWork`, whose binding is `wait(timeout_ms: int = -1)` (`csrc/core/NeuronBindings.cpp` near line
+2402). The c10d signature is `wait(timeout: datetime.timedelta)`, so the standard call fails:
+```
+w.wait(timeout=timedelta(seconds=10))  -> TypeError: wait(): incompatible function arguments
+w.wait(timedelta(seconds=10))          -> TypeError (same)
+w.wait(10000)                          -> RuntimeError after 10.0 s: Watchdog caught collective operation timeout
+```
+So the only way to get a timeout error today is the non-standard `wait(<int ms>)`. Accept a `timedelta` as well.
+Other `Work` methods on `NeuronWork` (`work_api.py`): `result()`, `get_future()`, `exception()`, `boxed()`,
+`synchronize()` work; `get_future_result()` raises "Work::getFutureResult not implemented", `block_current_stream()`
+raises "Failed to create StreamBlock", `is_success()` raises NotImplementedError (deprecated upstream too).
+
 Possible fix: when the watchdog times out a collective, abort the communicator and fail the stream (the NCCL backend
 aborts the process group and raises, `TORCH_NCCL_ASYNC_ERROR_HANDLING`).
 
@@ -726,6 +766,37 @@ c10d `_tensor_to_object` unpickles the tensor onto the sender's device index.
 Possible fix: when a tensor is restored to a Neuron index that this process does not own, map it to the current device
 (or to CPU), or document that object collectives must hold CPU tensors.
 Known? `docs/torch_api_compatibility.md` lists these as supported (row 73-75) with no note on device tensors.
+
+### 25. A DDP comm hook that makes a tensor and uses it in the future callback fails; PowerSGD with error feedback fails
+
+`DDP.register_comm_hook(state, powerSGD_hook.powerSGD_hook)` with `use_error_feedback=True` (the default) fails at the
+first PowerSGD step, every run. `use_error_feedback=False` works, and the same script on CPU gloo works.
+With `NEURON_LAUNCH_BLOCKING=1` it also works, so it is an ordering problem in async execution.
+(`overnight/dist5/powersgd.py <rank> <error_feedback> <warm_start>`)
+```
+rank,ef,warm = 4 1 1 / 4 1 0 / 1 1 0: RES FAIL NRT Execution error occurred on Neuron for operation=aten::sub.Tensor
+  error message="NRT EXECUTION FAILED: ./torch_neuronx/csrc/core/KernelExecution.h:290: data_ptr FAILED.
+  Tensor not bound: lazy alloc kAlloc may not have executed"
+rank,ef,warm = 4 0 1 / 4 0 0 / 1 0 0: 4 steps ok
+```
+Minimal repro (`overnight/dist5/hook_min.py`, 4 ranks): a comm hook that does `cp = bucket.buffer().detach().clone()`
+(or `torch.zeros(...)`), starts `dist.all_reduce(buf, async_op=True)`, and computes `cp - t` in `fut.then(...)`:
+```
+RES noclone: ok
+RES clone: ERR ... Tensor not bound: lazy alloc kAlloc may not have executed
+RES zeros_first: ERR ... Tensor not bound: lazy alloc kAlloc may not have executed
+```
+The same pattern on the main thread (no DDP) works (`fut_then.py`, `fut_chain.py`), and a tensor made in an autograd
+grad hook and used later on the main thread works (`thread_alloc.py`).
+
+Probable root cause: DDP runs comm hooks on the autograd engine thread. The clone there gets a lazy allocation
+(`kAlloc`) that is not bound yet when the future callback, which runs on the thread that completes the `NeuronWork`
+future (`csrc/distributed/NeuronWork.cpp` `markCompleted`), dispatches `aten::sub` with it. `ExtractDataPtrs`
+(`csrc/core/KernelExecution.h:290`) then finds no NRT tensor. Possible fix: order the pending allocations of a tensor
+before any op that reads it from another thread or stream (for example, flush or wait for pending `kAlloc` ops of the
+inputs in the callback path, or bind the allocation eagerly when it is made off the main thread).
+
+Known? No.
 
 ## Performance: documented CPU fallbacks that cost the most in common training (eager)
 
@@ -957,3 +1028,48 @@ Distributed round 4 (`overnight/dist4/`, torchrun 4 ranks, CPU reference): no ne
   (`dist4/dt2_cpu.py`). FSDP2 `set_state_dict(..., broadcast_from_rank0=True)` with a full CPU state dict hangs on
   rank 0, also on CPU gloo (`dist4/osd3.py`). `clip_grad_norm_` on TP+FSDP 2D params on two meshes fails in
   `aten.stack` (upstream limit; torchtitan has its own clip).
+
+Distributed round 5 (`overnight/dist5/`, third distributed session): checked and correct, in addition to findings 21-24.
+- FSDP2: `reshard_after_forward=False`, explicit forward/backward prefetch, `shard_placement_fn` Shard(1), clip with
+  foreach, buffers stay plain tensors, a Linear shared by two units at root, AC + per-block compile over 40 steps
+  (loss equal to CPU at every logged step, flat memory), MixedPrecisionPolicy bf16 param + fp32/bf16 reduce and fp32 param
+  + bf16 reduce (errors at bf16 level, same as CPU gloo), uneven batch size per rank (DDP, FSDP2, compiled DDP).
+- TP: Embedding Colwise with Replicate output, SequenceParallel + RMSNorm + Shard(1) Colwise/Rowwise, loss_parallel with
+  ignore_index and sum. DTensor Partial(sum/avg/max) -> Replicate/Shard(0)/Shard(1), uneven Shard(0) -> Shard(1)/Replicate.
+- Collectives: 3 GiB bf16 and 2 GiB fp32 all_reduce, 1 GiB/rank all_gather, 500 small all_reduce (2.8 s),
+  `_coalescing_manager`, `all_reduce_coalesced`, NaN/+inf/-inf through SUM/MAX/MIN/AVG/reduce_scatter/all_gather (fp32,
+  bf16), FSDP2 clip_grad_norm_ with a NaN on one rank (norm NaN on all ranks, `error_if_nonfinite` raises), CPU tensors on
+  the `cpu:gloo,neuron:neuron` backend, `barrier(device_ids=...)`, `monitored_barrier`, `torch.distributed.nn` all_reduce
+  under compile with grad, int `all_to_all_single` and `gather` (exact), DDP with fp32 + bf16 params and tiny buckets.
+  all_reduce bus bandwidth rises smoothly to about 104 GB/s at 256 MiB-1 GiB (no step at the 512 MiB bucket size); a small
+  message takes about 0.14 ms.
+- A peer that exits is detected at once (NRT error in 1 s on the others).
+- Real-scale runs (`llama_scale.py`, 8 layers, hidden 512, GQA 8/4, RoPE, SwiGLU, vocab 2048, 300 AdamW steps with warmup
+  + cosine + clip): FSDP2 fp32, FSDP2 bf16 params, FSDP2 + compiled blocks, DDP: loss equal to CPU (dp=4 global batch)
+  to step 12, then the runs drift apart slowly (lr 3e-3), final 2.05 vs 2.04 on CPU; memory flat. TP+FSDP2 2x2 at S=120:
+  equal to step 29, final 2.76 vs 2.70. At S=128 see finding 16. At S=120 with `torch.compile` per block: TP+FSDP2
+  equal to step 29 (final 2.675 vs 2.701), DDP and FSDP2 fp32 equal to step 34 (2.027 vs 2.028), FSDP2 bf16 params
+  2.036 vs 2.028; memory flat in all runs.
+- Not reported: pipelining (`ScheduleGPipe`) fails at once with "RdmaManager: DiscoverEFAInfo failed" (finding 11, clear
+  error, no hang). TP-only clip_grad_norm_ with plain norm params fails in `_foreach_norm` (mixed DTensor/Tensor, upstream).
+  FSDP2 `output_dtype=float32` on inner blocks and a fp32 buffer under bf16 params give "mat1 and mat2 must have the same
+  dtype" (same on CPU gloo). `PrepareModuleInput` without `use_local_output=True` before a plain RMSNorm fails (same on
+  gloo). `loss_parallel` with `weight` and ignore_index fails (CPU gloo: "index -100 is out of bounds", upstream).
+- Batch F-H (`probe_dist5f/g/h.py`): same seed gives the same rand/dropout stream on all ranks; TP dropout on a
+  replicated activation is equal on all TP ranks; whole-model `torch.compile` of an FSDP2 model (3 steps, 1.3e-7);
+  TP + non-reentrant activation checkpointing (3.3e-7); all_reduce on a side stream overlapped with default-stream compute
+  and async wait on a side stream; meshes (1, 4) and (4, 1) for TP+FSDP2; `DeviceMesh._flatten`; a gloo subgroup next to
+  the neuron default group; `destroy_process_group` with 4 async all_reduce pending (values right, re-init works with the
+  `neuron` backend); `all_to_all_single` / `all_to_all` / `all_to_all_single_autograd` with zero splits and a rank that
+  sends nothing; DCP save bf16 -> load into fp32, int64 3e9 and float64 1e300 in DCP state (exact: DCP does no data
+  collectives); FSDP1 FULL_SHARD / SHARD_GRAD_OP / NO_SHARD / use_orig_params / wrap policy / sync_module_states /
+  forward_prefetch, FULL and SHARDED state dicts, optim_state_dict, reload; ZeroRedundancyOptimizer; post-local SGD.
+- Not reported (low or upstream): `all_reduce` / `all_gather` of an empty tensor raise "tensors cannot be empty" and
+  `reduce_scatter_tensor` of an empty tensor fails to lower (NCCL treats these as no-ops). Compiled
+  `all_to_all_single` with uneven splits fails to lower ("failed to legalize unresolved materialization"); even splits
+  compile; `docs/AI-all-to-all.md` says variable a2a-v is an eager path. torchrun `--max-restarts 1`: the restarted
+  attempt fails on CPU gloo too in this environment (gloo connectFullMesh), so not counted; on the `neuron` backend the
+  restarted attempt hangs in the CC bootstrap ("rank 0 awaiting root parameters", retry every 240 s) instead of failing.
+  With `cpu:gloo,neuron:neuron`, re-init after destroy fails in gloo (same as CPU gloo). FSDP1 `MixedPrecision` bf16
+  gives 0.225 rel param error after 3 AdamW steps on Neuron and on CPU gloo alike. DCP stores one copy of a plain
+  (non-DTensor) tensor that differs per rank (upstream semantics).

@@ -1,0 +1,20 @@
+=== tp_fsdp_compile s120 exit 0
+tp_fsdp_compile step 0 loss 7.7162 mem 109.6MiB 20s
+tp_fsdp_compile step 150 loss 4.6946 mem 109.6MiB 72s
+tp_fsdp_compile step 275 loss 3.0482 mem 109.6MiB 114s
+tp_fsdp_compile done 123s
+=== fsdp_bf16_compile s120 exit 0
+fsdp_bf16_compile step 0 loss 7.7270 mem 107.8MiB 18s
+fsdp_bf16_compile step 150 loss 2.4006 mem 107.8MiB 34s
+fsdp_bf16_compile step 275 loss 2.1512 mem 106.8MiB 48s
+fsdp_bf16_compile done 51s
+=== ddp_compile s120 exit 0
+ddp_compile step 0 loss 7.7272 mem 519.1MiB 17s
+ddp_compile step 150 loss 2.4072 mem 518.4MiB 33s
+ddp_compile step 275 loss 2.1522 mem 519.2MiB 42s
+ddp_compile done 43s
+=== fsdp s120 exit 0
+fsdp step 0 loss 7.7272 mem 109.0MiB 16s
+fsdp step 150 loss 2.4090 mem 109.0MiB 33s
+fsdp step 275 loss 2.1556 mem 109.0MiB 48s
+fsdp done 52s
